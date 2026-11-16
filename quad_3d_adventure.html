@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>3D 사각형 탐험대: 도형 왕국 탈출 (초등 4학년 2학기 수학)</title>
+  <title>송송수학 · 3D 사각형 탐험대: 도형 왕국 탈출 (초등 4학년 2학기 수학)</title>
   <!-- 즉시 렌더링 보장 기본 스타일 (외부 CDN 지연/차단 시에도 빈 화면 방지) -->
   <style>
     html, body {
@@ -107,23 +107,26 @@
   <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b-2 border-slate-700 shadow-lg">
     <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5">
       <div class="flex items-center justify-between gap-2 mb-2">
-        <div class="flex items-center gap-1.5 sm:gap-2">
-          <!-- 메인 로비로 돌아가기 버튼 신설 -->
-          <button type="button" onclick="window.location.href='index.html'"
-            class="btn-3d flex items-center gap-1 bg-indigo-900 hover:bg-indigo-800 border-2 border-indigo-400/70 text-indigo-100 px-2 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
-            <span class="text-base leading-none">⬅️</span>
-            <span class="hidden sm:inline">로비</span>
-          </button>
-          
+        <div class="flex items-center gap-2">
           <button id="homeBtn" type="button"
-            class="btn-3d flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border-2 border-sky-400/70 text-sky-100 px-2 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
+            class="btn-3d flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border-2 border-sky-400/70 text-sky-100 px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
             <span class="text-base leading-none">🏠</span>
-            <span class="hidden sm:inline">처음(단계 선택)</span>
-            <span class="sm:hidden">단계</span>
+            <span>처음(단계 선택)</span>
           </button>
+          <div class="flex items-center gap-1.5 bg-gradient-to-r from-amber-400/20 to-sky-400/20 border-2 border-amber-400/80 px-3 py-1.5 rounded-2xl shadow-xs">
+            <span class="text-sm leading-none">🏫</span>
+            <span class="font-display text-amber-300 text-xs sm:text-sm tracking-tight">송송수학</span>
+            <span class="hidden md:inline text-[11px] font-extrabold text-sky-200 border-l border-slate-600 pl-2">개념이 송! 이해가 송!</span>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
+          <!-- 현재 탐험대원 이름 배지 -->
+          <div class="flex items-center gap-1.5 bg-sky-950/80 border-2 border-sky-400/70 px-2.5 sm:px-3 py-1.5 rounded-2xl" title="현재 탐험대원 이름">
+            <span class="text-sm leading-none">🧑‍🚀</span>
+            <span id="hudPlayerBadge" class="font-display text-sky-200 text-xs sm:text-sm">멋진 탐험대원</span>
+          </div>
+
           <!-- 총 획득 별 카운터 -->
           <div class="flex items-center gap-1.5 bg-amber-950/80 border-2 border-amber-400/80 px-3 py-1.5 rounded-2xl" title="전체 획득한 탐험 별 (총 30개)">
             <span class="text-base leading-none">⭐</span>
@@ -154,11 +157,11 @@
   <main id="appContainer" class="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
     <section class="bg-slate-800/95 text-slate-50 rounded-3xl border-2 border-sky-400/50 border-b-8 p-5 sm:p-8 shadow-2xl">
       <div class="text-center mb-7">
-        <span class="inline-block bg-sky-500/20 text-sky-300 border border-sky-400/50 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-2">
-          초등 4학년 2학기 수학 · 3D 입체 사각형 어드벤처
+        <span class="inline-block bg-amber-400/20 text-amber-300 border border-amber-400/60 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-2">
+          🏫 송송수학 전용 학습 게임 · 개념이 송! 이해가 송!
         </span>
         <h1 class="font-display text-2xl sm:text-4xl text-white mb-2 leading-tight">
-          🧭 3D 사각형 탐험대: 도형 왕국 탈출
+          🧭 송송수학 3D 사각형 탐험대: 도형 왕국 탈출
         </h1>
         <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
           원하는 스테이지를 선택해 탐험가를 탈출시켜 주세요! 성공하면 탐험가가 <strong>만세 점프와 엄지척</strong>을 보여줍니다!
@@ -3371,6 +3374,8 @@
           threeLoading: false,
           threeError: null,
 
+          playerName: '',
+          nameSavedNotice: false,
           s1Idx: 0,
           s1Hint: false,
           s1DisplayOverride: 'auto', // 'auto' | 'angle' | 'length' | 'label'
@@ -3408,6 +3413,7 @@
         safeStorage.setItem(
           STORAGE_KEY,
           JSON.stringify({
+            playerName: state.playerName,
             s1Solved: state.s1Solved,
             s1FirstTry: state.s1FirstTry,
             s2Solved: state.s2Solved,
@@ -3425,6 +3431,7 @@
           const raw = safeStorage.getItem(STORAGE_KEY);
           if (!raw) return;
           const p = JSON.parse(raw);
+          if (typeof p.playerName === 'string') state.playerName = p.playerName.trim().slice(0, 16);
           if (Array.isArray(p.s1Solved) && p.s1Solved.length === 10) state.s1Solved = p.s1Solved;
           if (Array.isArray(p.s1FirstTry) && p.s1FirstTry.length === 10) state.s1FirstTry = p.s1FirstTry;
           if (Array.isArray(p.s2Solved) && p.s2Solved.length === 10) state.s2Solved = p.s2Solved;
@@ -3440,6 +3447,31 @@
             });
           }
         } catch (e) {}
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function getExplorerName() {
+        const trimmed = (state.playerName || '').trim();
+        return trimmed ? trimmed : '멋진 탐험대원';
+      }
+
+      function syncNameFromInput(inputId) {
+        const el = document.getElementById(inputId);
+        if (el && typeof el.value === 'string') {
+          const val = el.value.trim().slice(0, 16);
+          if (val) {
+            state.playerName = val;
+            saveProgress();
+          }
+        }
       }
 
       function resetProgress() {
@@ -3779,7 +3811,8 @@
               sfx.victoryFanfare();
               engine3D.treasureOpenTarget = -1.2;
               engine3D.spawnTreasureFountain(refs.chestPos);
-              engine3D.triggerCelebration(refs.goalPos, m.cheerText || '🎉 신난다! 도형 마스터! 👍');
+              const who = state.playerName ? `${state.playerName} 대원, ` : '';
+              engine3D.triggerCelebration(refs.goalPos, `🎉 ${who}다리 건너기 대성공! 👍`);
 
               state.isAnimating = false;
               state.s3Solved[idx] = true;
@@ -3822,6 +3855,11 @@
       function renderHUD() {
         const starEl = document.getElementById('starCounter');
         if (starEl) starEl.textContent = `${state.stars} / 30`;
+
+        const nameBadgeEl = document.getElementById('hudPlayerBadge');
+        if (nameBadgeEl) {
+          nameBadgeEl.textContent = state.playerName ? `${state.playerName} 대원` : '이름 미입력';
+        }
 
         const s1Cnt = state.s1Solved.filter(Boolean).length;
         const s2Cnt = state.s2Solved.filter(Boolean).length;
@@ -3961,17 +3999,50 @@
                 </svg>
               </div>
 
-              <span class="inline-block bg-sky-500/20 text-sky-300 border border-sky-400/50 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-2">
-                초등 4학년 2학기 수학 · 3D 입체 사각형 어드벤처
+              <span class="inline-block bg-amber-400/20 text-amber-300 border border-amber-400/60 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-2">
+                🏫 송송수학 전용 3D 입체 학습 · 개념이 송! 이해가 송!
               </span>
 
               <h1 class="font-display text-2xl sm:text-4xl text-white mb-2 leading-tight">
-                🧭 3D 사각형 탐험대: 도형 왕국 탈출
+                🧭 송송수학 3D 사각형 탐험대: 도형 왕국 탈출
               </h1>
 
               <p class="text-slate-300 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-                원하는 스테이지를 선택해 탐험가를 무사히 탈출시켜 주세요! 성공하면 탐험가가 신나게 <strong>만세 점프와 승리 댄스, 엄지척</strong>을 보여준답니다!
+                <strong>송송수학</strong> 친구들 환영해요! 원하는 스테이지를 선택해 탐험가를 탈출시켜 주세요! 성공하면 탐험가가 <strong>만세 점프와 승리 댄스, 엄지척</strong>을 보여준답니다!
               </p>
+            </div>
+
+            <!-- 어린이 탐험대원 이름 등록 카드 -->
+            <div class="max-w-2xl mx-auto mb-7 bg-slate-900/95 border-2 border-amber-400/70 rounded-3xl p-4 sm:p-5 shadow-lg">
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-center sm:text-left">
+                  <span class="inline-block bg-amber-400/20 text-amber-300 text-xs font-black px-3 py-0.5 rounded-full mb-1">
+                    🏆 명예 수료증 이름 등록
+                  </span>
+                  <h2 class="font-display text-base sm:text-lg text-white">
+                    ${state.playerName ? `반가워요, <span class="text-amber-300">${escapeHtml(state.playerName)}</span> 탐험대원! 🎉` : '출발하기 전에 탐험대원의 이름을 적어 주세요!'}
+                  </h2>
+                  <p class="text-xs text-slate-300 mt-0.5">
+                    여기에 적은 이름이 황금 보물상자 축하 메시지와 <strong>최종 명예 탐험대 수료증</strong>에 멋지게 찍힙니다.
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                  <input id="playerNameInput" type="text" maxlength="16"
+                    value="${escapeHtml(state.playerName)}"
+                    placeholder="예: 김수민, 이정우"
+                    class="w-full sm:w-44 bg-slate-800 text-white placeholder-slate-400 font-display text-sm sm:text-base px-3.5 py-2.5 rounded-2xl border-2 border-sky-400/70 focus:outline-none focus:border-amber-400 text-center sm:text-left" />
+                  <button id="saveNameBtn" type="button"
+                    class="btn-3d bg-amber-400 hover:bg-amber-300 text-slate-950 font-display text-xs sm:text-sm px-4 py-2.5 rounded-2xl border-b-4 border-amber-600 shadow shrink-0">
+                    ✨ 이름 등록
+                  </button>
+                </div>
+              </div>
+              ${
+                state.nameSavedNotice && state.playerName
+                  ? `<p class="mt-2.5 text-center sm:text-left text-xs font-extrabold text-emerald-300 animate-pop">✔ '${escapeHtml(state.playerName)}' 탐험대원 이름이 등록되었어요! 이제 원하는 단계를 시작해 보세요!</p>`
+                  : ''
+              }
             </div>
 
             <!-- 3개 스테이지 독립 시작 카드 -->
@@ -4069,8 +4140,39 @@
       }
 
       function bindIntroEvents() {
+        const nameInput = document.getElementById('playerNameInput');
+        const saveNameBtn = document.getElementById('saveNameBtn');
+
+        const savePlayerNameAction = () => {
+          if (!nameInput) return;
+          const val = nameInput.value.trim().slice(0, 16);
+          state.playerName = val;
+          state.nameSavedNotice = Boolean(val);
+          saveProgress();
+          sfx.celebrate();
+          render();
+        };
+
+        if (saveNameBtn) {
+          saveNameBtn.addEventListener('click', savePlayerNameAction);
+        }
+        if (nameInput) {
+          nameInput.addEventListener('input', () => {
+            state.playerName = nameInput.value.trim().slice(0, 16);
+            saveProgress();
+            renderHUD();
+          });
+          nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              savePlayerNameAction();
+            }
+          });
+        }
+
         document.querySelectorAll('.stage-start-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
+            syncNameFromInput('playerNameInput');
             sfx.click();
             startStage(Number(btn.dataset.startStage));
           });
@@ -4079,6 +4181,7 @@
         const certBtn = document.getElementById('openCertBtn');
         if (certBtn) {
           certBtn.addEventListener('click', () => {
+            syncNameFromInput('playerNameInput');
             sfx.fanfare();
             state.screen = 'report';
             render();
@@ -4646,7 +4749,8 @@
             <span class="inline-block bg-amber-400/20 text-amber-300 border border-amber-400/50 font-extrabold text-xs sm:text-sm px-4 py-1 rounded-full mb-3">
               STAGE ${stg} COMPLETE
             </span>
-            <h1 class="font-display text-2xl sm:text-4xl text-white mb-3">${meta.title}</h1>
+            <h1 class="font-display text-2xl sm:text-4xl text-white mb-2">${meta.title}</h1>
+            <p class="font-display text-base sm:text-xl text-amber-300 mb-3">🧑‍🚀 ${escapeHtml(getExplorerName())}님의 빛나는 도전!</p>
 
             <div class="max-w-md mx-auto bg-amber-950/60 border-2 border-amber-400/60 rounded-2xl p-4 mb-4">
               <p class="text-xs font-extrabold text-amber-300 mb-1">이번 스테이지 획득 별</p>
@@ -4774,11 +4878,31 @@
         return `
           <section class="space-y-6 animate-pop">
             <div class="certificate-frame bg-white text-slate-900 rounded-3xl border-4 border-amber-400 p-6 sm:p-9 shadow-2xl text-center">
-              <span class="inline-block bg-amber-400 text-amber-950 font-display text-xs sm:text-sm px-5 py-1 rounded-full mb-3 shadow-sm">
-                3D GEOMETRY EXPEDITION CERTIFICATE
+              <span class="inline-block bg-amber-400 text-amber-950 font-display text-xs sm:text-sm px-5 py-1.5 rounded-full mb-3 shadow-sm">
+                🏫 개념이 송! 이해가 송! · 송송수학 공식 인증 수료증
               </span>
-              <h1 class="font-display text-3xl sm:text-4xl text-slate-900 mb-1.5">명예 사각형 탐험대 수료증</h1>
-              <p class="text-slate-500 text-xs sm:text-sm mb-5">초등학교 4학년 2학기 수학 · 사각형 단원 3D 어드벤처 30문항 과정</p>
+              <h1 class="font-display text-2xl sm:text-4xl text-slate-900 mb-1.5">송송수학 명예 사각형 탐험대 수료증</h1>
+              <p class="text-slate-600 text-xs sm:text-sm font-bold mb-4">송송수학 초등 4학년 2학기 · 사각형 단원 3D 어드벤처 30문항 마스터 과정</p>
+
+              <!-- 수료자 성명 대형 명패 -->
+              <div class="max-w-md mx-auto bg-sky-50 border-2 border-sky-300 rounded-2xl py-3 px-5 mb-4 shadow-xs">
+                <p class="text-xs font-extrabold text-sky-700 mb-0.5">수료 탐험대원 성명</p>
+                <p class="font-display text-2xl sm:text-3xl text-slate-900 tracking-wide">
+                  🧑‍🚀 ${escapeHtml(getExplorerName())} <span class="text-lg sm:text-xl text-sky-800">어린이</span>
+                </p>
+              </div>
+
+              <!-- 수료증 화면에서 바로 이름 입력/변경 가능 -->
+              <div class="max-w-md mx-auto mb-5 flex items-center justify-center gap-2">
+                <input id="certNameInput" type="text" maxlength="16"
+                  value="${escapeHtml(state.playerName)}"
+                  placeholder="이름을 입력·수정하세요"
+                  class="w-48 sm:w-56 bg-white text-slate-900 placeholder-slate-400 font-display text-xs sm:text-sm px-3 py-2 rounded-xl border-2 border-slate-300 focus:outline-none focus:border-sky-500 text-center" />
+                <button id="certSaveNameBtn" type="button"
+                  class="btn-3d bg-sky-500 hover:bg-sky-400 text-slate-950 font-display text-xs sm:text-sm px-3.5 py-2 rounded-xl border-b-4 border-sky-700">
+                  ✏️ 수료증 이름 반영
+                </button>
+              </div>
 
               <div class="max-w-md mx-auto bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-5">
                 <p class="text-xs font-bold text-amber-700 mb-1">수여 등급</p>
@@ -4805,10 +4929,18 @@
                 </div>
               </div>
 
-              <p class="text-slate-700 text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-4">
-                위 탐험대원은 3D 도형 왕국의 모든 낭떠러지와 고대 신전, 하늘 섬 공방의 수학 시련을 슬기롭게 돌파하였으므로 이 명예 수료증을 수여합니다.
+              <p class="text-slate-700 text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-5">
+                위 <strong>${escapeHtml(getExplorerName())}</strong> 어린이는 <strong>송송수학</strong> 3D 도형 왕국의 모든 낭떠러지와 고대 신전, 하늘 섬 공방의 수학 시련을 슬기롭게 돌파하여 사각형의 개념을 깊이 이해하였으므로 이 명예 수료증을 수여합니다.
               </p>
-              <p class="text-xs sm:text-sm text-slate-500 font-bold">발급일: ${today} · 도형 왕국 탐험 본부 🧭</p>
+              <div class="inline-flex flex-col sm:flex-row items-center justify-center gap-3 bg-amber-50/90 border-2 border-amber-300 rounded-2xl px-6 py-3">
+                <div class="text-center sm:text-left">
+                  <p class="text-xs text-slate-500 font-bold">발급일: ${today}</p>
+                  <p class="font-display text-base sm:text-lg text-slate-900">🏫 송송수학 도형 왕국 탐험 본부</p>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 border-2 border-amber-600 flex items-center justify-center shadow-sm shrink-0">
+                  <span class="font-display text-[11px] leading-tight text-amber-950 text-center">송송<br/>수학</span>
+                </div>
+              </div>
             </div>
 
             <div class="bg-slate-800/95 text-slate-50 rounded-3xl border-2 border-sky-400/50 border-b-8 p-5 sm:p-7 shadow-2xl">
@@ -4852,9 +4984,33 @@
       }
 
       function bindReportEvents() {
+        const certInput = document.getElementById('certNameInput');
+        const certSaveBtn = document.getElementById('certSaveNameBtn');
+
+        const applyCertName = () => {
+          if (!certInput) return;
+          state.playerName = certInput.value.trim().slice(0, 16);
+          saveProgress();
+          sfx.celebrate();
+          render();
+        };
+
+        if (certSaveBtn) {
+          certSaveBtn.addEventListener('click', applyCertName);
+        }
+        if (certInput) {
+          certInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              applyCertName();
+            }
+          });
+        }
+
         const homeBtn = document.getElementById('certHomeBtn');
         if (homeBtn) {
           homeBtn.addEventListener('click', () => {
+            syncNameFromInput('certNameInput');
             sfx.click();
             state.screen = 'intro';
             render();
