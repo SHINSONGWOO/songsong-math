@@ -107,11 +107,21 @@
   <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b-2 border-slate-700 shadow-lg">
     <div class="max-w-5xl mx-auto px-3 sm:px-6 py-2.5">
       <div class="flex items-center justify-between gap-2 mb-2">
-        <button id="homeBtn" type="button"
-          class="btn-3d flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border-2 border-sky-400/70 text-sky-100 px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
-          <span class="text-base leading-none">🏠</span>
-          <span>처음(단계 선택)</span>
-        </button>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- 메인 로비로 돌아가기 버튼 신설 -->
+          <button type="button" onclick="window.location.href='index.html'"
+            class="btn-3d flex items-center gap-1 bg-indigo-900 hover:bg-indigo-800 border-2 border-indigo-400/70 text-indigo-100 px-2 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
+            <span class="text-base leading-none">⬅️</span>
+            <span class="hidden sm:inline">로비</span>
+          </button>
+          
+          <button id="homeBtn" type="button"
+            class="btn-3d flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border-2 border-sky-400/70 text-sky-100 px-2 sm:px-3 py-1.5 rounded-2xl text-xs sm:text-sm font-extrabold shadow-xs focus:outline-none">
+            <span class="text-base leading-none">🏠</span>
+            <span class="hidden sm:inline">처음(단계 선택)</span>
+            <span class="sm:hidden">단계</span>
+          </button>
+        </div>
 
         <div class="flex items-center gap-2">
           <!-- 총 획득 별 카운터 -->
