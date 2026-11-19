@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <!--
+    =======================================================================
+    @license
+    Copyright (c) 2026 개념송 이해송 송송수학. All rights reserved.
+    
+    본 코드 및 포함된 모든 콘텐츠는 '개념송 이해송 송송수학'의 교육용 자산입니다.
+    원작자의 사전 허가 없는 무단 복제, 수정, 재배포, 타 사이트 게재 
+    및 상업적 이용을 엄격히 금지합니다.
+    =======================================================================
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>분수 탐험대 - 손 안 쓰고 푸는 3학년 분수 게임</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for gentle, pleasant sound effects without external URLs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <!-- Google Fonts: Jua (friendly rounded headings) & Noto Sans KR (crisp body text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-cream: #FFFDF7;
+      --card-white: #FFFFFF;
+      --primary-amber: #F59E0B;
+      --primary-sky: #0EA5E9;
+      --soft-mint: #10B981;
+      --soft-coral: #F43F5E;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #FEF9C3 0%, #E0F2FE 50%, #FCE7F3 100%);
+      min-height: 100vh;
+      color: #1E293B;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-jua {
+      font-family: 'Jua', sans-serif;
+    }
+
+    /* Stacked Math Fraction Styling */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      line-height: 1.05;
+      margin: 0 3px;
+      font-weight: 800;
+    }
+    .frac-num {
+      border-bottom: 2.5px solid currentColor;
+      padding: 0 5px 2px 5px;
+      min-width: 1.3em;
+      text-align: center;
+    }
+    .frac-den {
+      padding: 2px 5px 0 5px;
+      min-width: 1.3em;
+      text-align: center;
+    }
+    .mixed-frac {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      gap: 2px;
+    }
+    .mixed-whole {
+      font-size: 1.35em;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* Dwell (1.5s Hover Auto-Click) Progress Fill */
+    .dwell-target {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    }
+    .dwell-target:hover {
+      transform: translateY(-3px) scale(1.015);
+    }
+    .dwell-target:active {
+      transform: scale(0.98);
+    }
+    .dwell-fill {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      top: 0;
+      width: 0%;
+      background: rgba(14, 165, 233, 0.22);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .dwell-active .dwell-fill {
+      animation: dwellProgress 1.5s linear forwards;
+    }
+    @keyframes dwellProgress {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    /* Voice Listening Pulse */
+    @keyframes micPulse {
+      0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.55); }
+      70% { box-shadow: 0 0 0 14px rgba(244, 63, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+    }
+    .mic-listening {
+      animation: micPulse 1.5s infinite;
+    }
+
+    /* Gentle Floating & Pop Animations */
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes shakeGentle {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+    .animate-shake {
+      animation: shakeGentle 0.4s ease-in-out;
+    }
+
+    /* Custom Scrollbar for Stage Pills on Mobile */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="pb-12">
+
+  <!-- Top Accessibility & Control Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b-2 border-amber-200 shadow-sm">
+    <div class="max-w-5xl mx-auto px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- Brand / Title & Lobby Button -->
+      <div class="flex items-center gap-2">
+        <!-- 송송수학 메인 로비로 나가는 버튼 -->
+        <button onclick="window.location.href='index.html'" title="송송수학 오락실 로비로 돌아가기" class="dwell-target flex items-center gap-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-900 border-2 border-indigo-300 px-3 py-2 rounded-2xl font-jua text-base sm:text-lg transition">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">⬅️ 로비</span>
+        </button>
+
+        <button id="btn-home" onclick="goHome()" class="dwell-target flex items-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 px-3.5 py-2 rounded-2xl font-jua text-lg sm:text-xl transition">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">🍕 분수 탐험대</span>
+        </button>
+        <span class="hidden md:inline-block text-xs font-bold bg-sky-100 text-sky-800 px-2.5 py-1 rounded-full">
+          초3-2학기 4단원 · 핸즈프리 지원
+        </span>
+      </div>
+
+      <!-- 3 Accessibility Mode Switcher -->
+      <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200 gap-1" role="group" aria-label="조작 모드 선택">
+        <button id="mode-touch" onclick="setControlMode('touch')" class="dwell-target px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition bg-white text-sky-700 shadow-sm">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">👆 왕버튼 터치</span>
+        </button>
+        <button id="mode-dwell" onclick="setControlMode('dwell')" class="dwell-target px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition text-slate-600 hover:bg-white/60">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">⏳ 대고만 있기(1.5초)</span>
+        </button>
+        <button id="mode-voice" onclick="setControlMode('voice')" class="dwell-target px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition text-slate-600 hover:bg-white/60">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">🎙️ 말로 풀기</span>
+        </button>
+      </div>
+
+      <!-- TTS & New Random Set Controls -->
+      <div class="flex items-center gap-1.5">
+        <button id="btn-tts-toggle" onclick="toggleTTS()" class="dwell-target bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-1">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10" id="tts-label">🔊 읽어주기 ON</span>
+        </button>
+        <button onclick="replayCurrentSpeech()" title="문제 다시 듣기" class="dwell-target bg-sky-100 hover:bg-sky-200 text-sky-900 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">🔁 다시 듣기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Voice Status Banner (Visible when Voice Mode is active) -->
+    <div id="voice-banner" class="hidden bg-rose-50 border-t border-rose-200 px-4 py-2">
+      <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2 text-sm">
+        <div class="flex items-center gap-2.5">
+          <span id="mic-indicator" class="w-3.5 h-3.5 rounded-full bg-rose-500 inline-block mic-listening"></span>
+          <span class="font-bold text-rose-800" id="voice-status-text">마이크 듣는 중... "1번", "2번", "3번", "4번" 또는 정답을 말해보세요!</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="voice-transcript" class="text-xs bg-white px-2.5 py-1 rounded-full border border-rose-200 text-slate-600 font-medium">인식된 말: 대기 중</span>
+          <button onclick="restartVoiceRecognition()" class="text-xs bg-rose-600 text-white px-2.5 py-1 rounded-full font-bold hover:bg-rose-700">마이크 재시작</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto px-3 sm:px-5 pt-5">
+
+    <!-- SCREEN 1: HOME / STAGE MAP -->
+    <section id="screen-home" class="animate-pop">
+      <!-- Cheerful Welcome Card -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-lg border-4 border-amber-200 mb-6 relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="text-center md:text-left">
+            <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-900 px-3.5 py-1.5 rounded-full text-sm font-bold mb-3">
+              <span>💪 오른손 깁스 친구 응원 특별판</span>
+            </div>
+            <h1 class="font-jua text-3xl sm:text-4xl text-slate-800 mb-2 leading-snug">
+              손을 쓰지 않고 눈과 목소리로 푸는<br class="hidden sm:inline" />
+              <span class="text-amber-500">3학년 2학기 분수 탐험대!</span>
+            </h1>
+            <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-4">
+              연필이나 필기 없이도 그림만 보고 척척 이해할 수 있어요.<br />
+              위쪽에서 <strong>🎙️ 말로 풀기</strong>나 <strong>⏳ 대고만 있기</strong>를 고르면 손가락 하나로도 누를 필요가 없답니다!
+            </p>
+            <div class="flex flex-wrap justify-center md:justify-start gap-3">
+              <button onclick="startStage(0)" class="dwell-target bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-jua text-xl px-7 py-4 rounded-2xl shadow-md">
+                <div class="dwell-fill"></div>
+                <span class="relative z-10">🚀 1단계부터 출발하기!</span>
+              </button>
+              <button onclick="regenerateAllAndNotify()" class="dwell-target bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-base px-5 py-4 rounded-2xl">
+                <div class="dwell-fill"></div>
+                <span class="relative z-10">🎲 새 문제 숫자로 섞기</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress & Stars Summary Box -->
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 text-center min-w-[210px] shrink-0">
+            <div class="text-4xl mb-1" id="home-trophy-icon">🏆</div>
+            <div class="font-jua text-xl text-amber-900">나의 탐험 기록</div>
+            <div class="text-3xl font-black text-amber-600 my-1" id="total-stars-display">⭐ 0 / 35</div>
+            <p class="text-xs text-amber-800 font-medium" id="home-progress-msg">7단계를 모두 완주해 트로피를 받아요!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7 Stages Grid -->
+      <h2 class="font-jua text-2xl text-slate-800 mb-3 px-1 flex items-center justify-between">
+        <span>🗺️ 7단계 분수 탐험 지도 (클릭해서 바로 도전!)</span>
+        <span class="text-xs font-sans font-bold text-slate-500">단계별 5문제 · 매번 새 숫자</span>
+      </h2>
+      <div id="stage-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- SCREEN 2: 10-SECOND VISUAL CONCEPT CARD (SCAFFOLDING) -->
+    <section id="screen-concept" class="hidden animate-pop">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-sky-300">
+        <div class="flex items-center justify-between mb-4">
+          <span id="concept-stage-badge" class="bg-sky-100 text-sky-900 font-jua text-lg px-4 py-1.5 rounded-full">1단계 개념 쏙쏙</span>
+          <button onclick="goHome()" class="dwell-target bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-2xl text-sm">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🗺️ 지도로 가기</span>
+          </button>
+        </div>
+
+        <h2 id="concept-title" class="font-jua text-2xl sm:text-3xl text-slate-800 mb-4">개념 제목</h2>
+
+        <!-- Visual Diagram Area -->
+        <div id="concept-visual" class="bg-sky-50/70 border-2 border-sky-200 rounded-3xl p-5 mb-5 flex flex-col items-center justify-center min-h-[190px]">
+          <!-- Dynamic SVG Concept Illustration -->
+        </div>
+
+        <!-- Easy 2-3 Line Bullet Explanation -->
+        <div id="concept-explanation" class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 sm:p-5 text-slate-800 text-base sm:text-lg leading-relaxed mb-6 space-y-2">
+          <!-- Concept Bullets -->
+        </div>
+
+        <!-- Start Quiz Button -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button id="btn-start-quiz" onclick="beginStageQuestions()" class="dwell-target w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-jua text-2xl px-10 py-4 rounded-2xl shadow-lg">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">✨ 이해했어요! 문제 풀기 시작 (1번)</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 3: ACTIVE QUIZ SCREEN -->
+    <section id="screen-quiz" class="hidden animate-pop">
+      <!-- Top Quiz Progress Bar -->
+      <div class="bg-white rounded-2xl p-3.5 shadow-sm border-2 border-slate-200 mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <button onclick="showConceptScreen(currentStageIndex)" class="dwell-target bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">💡 개념 다시 보기</span>
+          </button>
+          <span id="quiz-stage-name" class="font-jua text-lg sm:text-xl text-slate-800">1단계: 분수로 나타내기</span>
+        </div>
+
+        <!-- 5 Question Dots -->
+        <div class="flex items-center gap-2" id="quiz-progress-dots">
+          <!-- 5 circles rendered by JS -->
+        </div>
+
+        <button onclick="goHome()" class="dwell-target bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10">🗺️ 전체 단계</span>
+        </button>
+      </div>
+
+      <!-- Main Question Card -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-xl border-4 border-amber-200">
+        <!-- Question Prompt -->
+        <div class="text-center mb-4">
+          <span id="question-number-pill" class="inline-block bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm px-3.5 py-1 rounded-full mb-2">
+            문제 1 / 5
+          </span>
+          <h3 id="question-prompt" class="font-jua text-2xl sm:text-3xl text-slate-800 leading-snug">
+            문제가 여기에 표시됩니다.
+          </h3>
+        </div>
+
+        <!-- Visual Manipulative Canvas/SVG Container -->
+        <div id="question-visual" class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-4 sm:p-6 mb-5 flex flex-col items-center justify-center min-h-[190px] transition-all">
+          <!-- Dynamic SVG Visual Aid -->
+        </div>
+
+        <!-- Feedback & Scaffolding Hint Box (Hidden until user answers) -->
+        <div id="feedback-box" class="hidden rounded-2xl p-4 mb-5 border-2 text-center transition-all">
+          <p id="feedback-title" class="font-jua text-xl sm:text-2xl mb-1"></p>
+          <p id="feedback-detail" class="text-sm sm:text-base font-medium"></p>
+        </div>
+
+        <!-- Oversized 4-Choice (or 3-Choice) Options Grid -->
+        <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          <!-- Big accessible cards rendered by JS -->
+        </div>
+
+        <!-- Next Question Action Button (Appears after correct answer) -->
+        <div id="next-action-wrap" class="hidden mt-5 text-center">
+          <button id="btn-next-question" onclick="handleNextQuestion()" class="dwell-target w-full sm:w-auto bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-jua text-2xl px-10 py-4 rounded-2xl shadow-lg">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">👉 다음 문제로 가기!</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 4: STAGE CLEAR MODAL / CARD -->
+    <section id="screen-stage-clear" class="hidden animate-pop">
+      <div class="bg-white rounded-3xl p-7 sm:p-10 shadow-xl border-4 border-emerald-300 text-center max-w-2xl mx-auto">
+        <div class="text-6xl mb-3">🎉</div>
+        <h2 id="stage-clear-title" class="font-jua text-3xl sm:text-4xl text-emerald-700 mb-2">1단계 완료! 정말 멋져요!</h2>
+        <p id="stage-clear-desc" class="text-slate-600 text-base sm:text-lg mb-5">손을 쓰지 않고도 분수 개념을 완벽하게 이해했네요!</p>
+
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6 inline-block px-8">
+          <div class="text-sm font-bold text-amber-800 mb-1">이번 단계 획득 별점</div>
+          <div id="stage-clear-stars" class="text-3xl">⭐⭐⭐⭐⭐</div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button id="btn-next-stage" onclick="goToNextStage()" class="dwell-target w-full sm:w-auto bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-jua text-xl px-8 py-4 rounded-2xl shadow-md">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🚀 다음 단계로 출발!</span>
+          </button>
+          <button onclick="retryCurrentStageNewNumbers()" class="dwell-target w-full sm:w-auto bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-base px-6 py-4 rounded-2xl">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🎲 새 숫자로 이 단계 다시 풀기</span>
+          </button>
+          <button onclick="goHome()" class="dwell-target w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-base px-6 py-4 rounded-2xl">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🗺️ 탐험 지도</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN 5: GRAND MASTER TROPHY & GET-WELL BADGE -->
+    <section id="screen-trophy" class="hidden animate-pop">
+      <div class="bg-gradient-to-b from-amber-50 via-white to-sky-50 rounded-3xl p-7 sm:p-10 shadow-2xl border-4 border-amber-400 text-center max-w-2xl mx-auto">
+        <div class="inline-flex items-center gap-2 bg-rose-100 text-rose-800 font-bold px-4 py-1.5 rounded-full text-sm mb-3">
+          <span>💖 오른손 깁스 완주 대성공!</span>
+        </div>
+        <div class="text-7xl my-2">🏆🎖️</div>
+        <h2 class="font-jua text-3xl sm:text-4xl text-slate-800 mb-2">
+          분수 마스터 트로피 & 쾌유 응원 배지!
+        </h2>
+        <p class="text-slate-700 text-base sm:text-lg leading-relaxed mb-6">
+          3학년 2학기 4단원 분수의 7가지 핵심 개념을 모두 정복했어요!<br />
+          깁스를 풀고 건강하게 돌아갈 때까지 분수 탐험대가 항상 응원할게요! 💪✨
+        </p>
+
+        <div class="grid grid-cols-2 gap-3 max-w-md mx-auto mb-7">
+          <div class="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+            <div class="text-3xl mb-1">🌟</div>
+            <div class="text-xs text-slate-500 font-bold">총 획득 별점</div>
+            <div id="final-total-stars" class="font-jua text-2xl text-amber-600">35 / 35</div>
+          </div>
+          <div class="bg-white border-2 border-emerald-300 rounded-2xl p-4 shadow-sm">
+            <div class="text-3xl mb-1">🩹✨</div>
+            <div class="text-xs text-slate-500 font-bold">특별 수여 배지</div>
+            <div class="font-jua text-lg text-emerald-700">씩씩한 분수 박사</div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button onclick="resetFullGameNewNumbers()" class="dwell-target w-full sm:w-auto bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-jua text-xl px-8 py-4 rounded-2xl shadow-lg">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🎲 새 문제로 처음부터 다시 풀기</span>
+          </button>
+          <button onclick="goHome()" class="dwell-target w-full sm:w-auto bg-sky-100 hover:bg-sky-200 text-sky-900 font-bold text-base px-6 py-4 rounded-2xl">
+            <div class="dwell-fill"></div>
+            <span class="relative z-10">🗺️ 단계 선택으로 가기</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /*************************************************************************
+     * 1. GLOBAL STATE & CURRICULUM METADATA
+     *************************************************************************/
+    const STAGES_META = [
+      {
+        id: 0,
+        num: "1단계",
+        title: "분수로 나타내기",
+        shortDesc: "전체를 똑같이 나눈 것 중 색칠한 부분",
+        icon: "🍕",
+        color: "amber"
+      },
+      {
+        id: 1,
+        num: "2단계",
+        title: "분수만큼 얼마인지 알아보기",
+        shortDesc: "전체를 똑같이 묶어 그중 몇 묶음인지 세기",
+        icon: "🍬",
+        color: "pink"
+      },
+      {
+        id: 2,
+        num: "3단계",
+        title: "진분수·가분수 알아보기",
+        shortDesc: "분자와 분모의 크기를 비교해 구분하기",
+        icon: "⚖️",
+        color: "sky"
+      },
+      {
+        id: 3,
+        num: "4단계",
+        title: "대분수 알아보기",
+        shortDesc: "자연수와 진분수로 이루어진 분수 알기",
+        icon: "🍰",
+        color: "purple"
+      },
+      {
+        id: 4,
+        num: "5단계",
+        title: "가분수를 대분수로 바꾸기",
+        shortDesc: "조각을 모아 온전한 1이 몇 개인지 찾기",
+        icon: "🔄",
+        color: "emerald"
+      },
+      {
+        id: 5,
+        num: "6단계",
+        title: "대분수를 가분수로 바꾸기",
+        shortDesc: "온전한 1을 똑같은 조각으로 쪼개어 세기",
+        icon: "✂️",
+        color: "orange"
+      },
+      {
+        id: 6,
+        num: "7단계",
+        title: "분모가 같은 분수의 크기 비교",
+        shortDesc: "분수 막대 길이를 보고 <, =, > 고르기",
+        icon: "📏",
+        color: "indigo"
+      }
+    ];
+
+    let controlMode = 'touch'; // 'touch' | 'dwell' | 'voice'
+    let ttsEnabled = true;
+    let currentScreen = 'home';
+    let currentStageIndex = 0;
+    let currentQuestionIndex = 0;
+    let stageQuestions = []; // Array of 7 stages, each containing 5 randomized questions
+    let stageStars = [0, 0, 0, 0, 0, 0, 0];
+    let currentQuestionSolved = false;
+    let currentQuestionHadMistake = false;
+    let lastSpokenText = "";
+
+    /*************************************************************************
+     * 2. MATH & FRACTION FORMATTING UTILITIES (HTML + KOREAN TTS)
+     *************************************************************************/
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // Render visual HTML stacked fraction
+    function fmtFrac(num, den) {
+      return `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+    }
+
+    // Render visual HTML mixed fraction
+    function fmtMixed(whole, num, den) {
+      return `<span class="mixed-frac"><span class="mixed-whole">${whole}</span>${fmtFrac(num, den)}</span>`;
+    }
+
+    // Convert fraction into natural Korean speech for TTS
+    function speakFrac(num, den) {
+      return `${den}분의 ${num}`;
+    }
+
+    function speakMixed(whole, num, den) {
+      return `${whole}과 ${den}분의 ${num}`;
+    }
+
+    /*************************************************************************
+     * 3. SVG VISUAL GENERATORS (NO HANDWRITING NEEDED!)
+     *************************************************************************/
+    // SVG 1: Chocolate Bar or Pizza Circle for Stage 1, 3, 4, 5, 6
+    function renderChocolateBarSVG(den, num, options = {}) {
+      const {
+        highlightWhole = false,
+        showDashedSplit = true,
+        width = 300,
+        height = 68,
+        fillColor = "#F59E0B",
+        emptyColor = "#FEF3C7",
+        strokeColor = "#92400E"
+      } = options;
+
+      const cellW = (width - 12) / den;
+      let rects = "";
+      for (let i = 0; i < den; i++) {
+        const isFilled = i < num;
+        const x = 6 + i * cellW;
+        rects += `
+          <rect x="${x}" y="8" width="${cellW}" height="${height - 16}"
+            fill="${isFilled ? fillColor : emptyColor}"
+            stroke="${strokeColor}"
+            stroke-width="${showDashedSplit ? 2 : 0}"
+            ${!showDashedSplit ? 'stroke-opacity="0"' : ''}
+            rx="4" />
+        `;
+      }
+      const outerBorder = highlightWhole
+        ? `<rect x="4" y="6" width="${width - 8}" height="${height - 12}" fill="none" stroke="#B45309" stroke-width="4" rx="8" />`
+        : `<rect x="6" y="8" width="${width - 12}" height="${height - 16}" fill="none" stroke="${strokeColor}" stroke-width="2.5" rx="6" />`;
+
+      return `
+        <svg viewBox="0 0 ${width} ${height}" class="w-full max-w-[320px] h-auto drop-shadow-sm">
+          ${rects}
+          ${outerBorder}
+        </svg>
+      `;
+    }
+
+    // SVG 2: Pie Circle for Fractions
+    function renderPieSVG(den, num, size = 135, fillColor = "#FB7185", emptyColor = "#FFE4E6", showSlices = true) {
+      const cx = size / 2;
+      const cy = size / 2;
+      const r = size / 2 - 8;
+      let paths = "";
+
+      if (num === den && !showSlices) {
+        return `
+          <svg viewBox="0 0 ${size} ${size}" class="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-sm">
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="${fillColor}" stroke="#9F1239" stroke-width="3" />
+            <text x="${cx}" y="${cy + 7}" text-anchor="middle" fill="white" font-weight="900" font-size="24">1</text>
+          </svg>
+        `;
+      }
+
+      for (let i = 0; i < den; i++) {
+        const startAngle = (i * 2 * Math.PI) / den - Math.PI / 2;
+        const endAngle = ((i + 1) * 2 * Math.PI) / den - Math.PI / 2;
+        const x1 = cx + r * Math.cos(startAngle);
+        const y1 = cy + r * Math.sin(startAngle);
+        const x2 = cx + r * Math.cos(endAngle);
+        const y2 = cy + r * Math.sin(endAngle);
+        const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
+        const isFilled = i < num;
+
+        paths += `
+          <path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z"
+            fill="${isFilled ? fillColor : emptyColor}"
+            stroke="#881337"
+            stroke-width="2"
+            stroke-dasharray="${showSlices ? 'none' : '4,3'}" />
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 ${size} ${size}" class="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-sm">
+          ${paths}
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#881337" stroke-width="3" />
+        </svg>
+      `;
+    }
+
+    // SVG 3: Grouped Items (Marbles/Candies) for Stage 2 ("분수만큼 얼마인지")
+    function renderGroupedItemsSVG(total, den, num, emoji = "🍬", highlightGroups = true) {
+      const perGroup = total / den;
+      let groupCards = "";
+
+      for (let g = 0; g < den; g++) {
+        const isSelected = highlightGroups && g < num;
+        let itemsHtml = "";
+        for (let k = 0; k < perGroup; k++) {
+          itemsHtml += `<span class="text-xl sm:text-2xl leading-none">${emoji}</span>`;
+        }
+        groupCards += `
+          <div class="flex flex-col items-center p-2 sm:p-2.5 rounded-2xl border-2 border-dashed transition-all ${
+            isSelected
+              ? "bg-amber-100 border-amber-500 shadow-sm scale-105"
+              : "bg-white border-slate-300 opacity-85"
+          }">
+            <div class="flex flex-wrap justify-center gap-1 max-w-[84px]">
+              ${itemsHtml}
+            </div>
+            <span class="mt-1.5 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              isSelected ? "bg-amber-500 text-white" : "bg-slate-100 text-slate-500"
+            }">
+              ${g + 1}묶음
+            </span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="w-full">
+          <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+            ${groupCards}
+          </div>
+          <p class="text-center text-xs sm:text-sm text-slate-600 font-bold mt-3">
+            💡 전체 <span class="text-sky-700">${total}개</span>를 똑같이 <span class="text-amber-700">${den}묶음</span>으로 나누면 한 묶음에 <span class="text-emerald-700">${perGroup}개</span>씩 들어있어요!
+          </p>
+        </div>
+      `;
+    }
+
+    // SVG 4: Multiple Bars / Pies for Stage 3, 4, 5, 6
+    function renderMultiUnitsVisual(den, totalParts, mode = "pie", showSplitOnWhole = true) {
+      const unitsToRender = Math.max(1, Math.ceil(totalParts / den));
+      let html = `<div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">`;
+
+      for (let u = 0; u < unitsToRender; u++) {
+        const partsInThisUnit = Math.min(den, Math.max(0, totalParts - u * den));
+        const isFullUnit = partsInThisUnit === den;
+        if (mode === "pie") {
+          html += `
+            <div class="flex flex-col items-center">
+              ${renderPieSVG(den, partsInThisUnit, 120, isFullUnit ? "#F59E0B" : "#38BDF8", "#F1F5F9", showSplitOnWhole || !isFullUnit)}
+              <span class="text-xs font-bold mt-1 ${isFullUnit ? "text-amber-700" : "text-sky-700"}">
+                ${isFullUnit ? (showSplitOnWhole ? `1 (${den}조각)` : "자연수 1") : `${partsInThisUnit}/${den}`}
+              </span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="flex flex-col items-center">
+              ${renderChocolateBarSVG(den, partsInThisUnit, {
+                width: 210,
+                height: 54,
+                fillColor: isFullUnit ? "#10B981" : "#38BDF8",
+                emptyColor: "#F1F5F9",
+                strokeColor: "#0F172A",
+                showDashedSplit: showSplitOnWhole || !isFullUnit
+              })}
+              <span class="text-xs font-bold mt-1 ${isFullUnit ? "text-emerald-700" : "text-sky-700"}">
+                ${isFullUnit ? (showSplitOnWhole ? `1 (${den}칸)` : "자연수 1") : `${partsInThisUnit}/${den}`}
+              </span>
+            </div>
+          `;
+        }
+      }
+      html += `</div>`;
+      return html;
+    }
+
+    // SVG 5: Side-by-Side Fraction Bar Comparison for Stage 7
+    function renderComparisonBarsVisual(den, leftTotalParts, rightTotalParts, leftLabelHtml, rightLabelHtml) {
+      const maxUnits = Math.max(1, Math.ceil(Math.max(leftTotalParts, rightTotalParts) / den));
+      const totalCells = maxUnits * den;
+
+      function buildRow(parts, color, labelHtml) {
+        let cells = "";
+        for (let i = 0; i < totalCells; i++) {
+          const filled = i < parts;
+          const isUnitEnd = (i + 1) % den === 0 && i !== totalCells - 1;
+          cells += `
+            <div class="h-8 sm:h-10 flex-1 border border-slate-400 ${
+              isUnitEnd ? "border-r-4 border-r-slate-800" : ""
+            }" style="background-color: ${filled ? color : "#F8FAFC"};"></div>
+          `;
+        }
+        return `
+          <div class="w-full max-w-md">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-base sm:text-lg font-black text-slate-800">${labelHtml}</span>
+              <span class="text-xs font-bold text-slate-500">1칸 = ${fmtFrac(1, den)} (총 ${parts}칸)</span>
+            </div>
+            <div class="flex w-full rounded-xl overflow-hidden border-2 border-slate-700 shadow-sm">
+              ${cells}
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="w-full flex flex-col items-center gap-4">
+          ${buildRow(leftTotalParts, "#F59E0B", leftLabelHtml)}
+          ${buildRow(rightTotalParts, "#0EA5E9", rightLabelHtml)}
+        </div>
+      `;
+    }
+
+    /*************************************************************************
+     * 4. DYNAMIC QUESTION GENERATOR FOR ALL 7 CURRICULUM STAGES
+     *************************************************************************/
+    function generateAllStageQuestions() {
+      const all = [];
+
+      // --- STAGE 1: 분수로 나타내기 (5 questions) ---
+      const s1 = [];
+      const usedS1 = new Set();
+      while (s1.length < 5) {
+        const den = randInt(3, 10);
+        const num = randInt(1, den - 1);
+        const key = `${num}/${den}`;
+        if (usedS1.has(key)) continue;
+        usedS1.add(key);
+
+        const usePie = s1.length % 2 === 0;
+        const correctHtml = fmtFrac(num, den);
+        const correctSpeech = speakFrac(num, den);
+
+        // Generate 3 distinct plausible distractors
+        const distractors = [];
+        const candidates = [
+          [den - num, den],
+          [den, num],
+          [num, den + 1],
+          [Math.max(1, num - 1), den],
+          [Math.min(den - 1, num + 1), den],
+          [num, Math.max(2, den - 1)]
+        ];
+        for (const [cn, cd] of candidates) {
+          if (cn === num && cd === den) continue;
+          const h = fmtFrac(cn, cd);
+          if (!distractors.some(d => d.html === h)) {
+            distractors.push({ html: h, speech: speakFrac(cn, cd), isCorrect: false });
+          }
+          if (distractors.length === 3) break;
+        }
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          ...distractors
+        ]);
+
+        s1.push({
+          promptHtml: `전체를 똑같이 <strong>${den}조각</strong>으로 나눈 것 중 색칠한 부분은 전체의 얼마인가요?`,
+          promptSpeech: `전체를 똑같이 ${den}조각으로 나눈 것 중 색칠한 부분은 전체의 얼마인가요?`,
+          visualHtml: usePie ? renderPieSVG(den, num, 150) : renderChocolateBarSVG(den, num, { width: 320, height: 74 }),
+          hintSpeech: `전체를 똑같이 나눈 조각 수 ${den}을 아래쪽 분모에 쓰고, 색칠된 조각 수 ${num}을 위쪽 분자에 써보세요!`,
+          hintHtml: `전체를 똑같이 <strong>${den}조각</strong>으로 나누었으니 분모는 <strong>${den}</strong>, 색칠된 조각은 <strong>${num}조각</strong>이니 분자는 <strong>${num}</strong>이에요!`,
+          options
+        });
+      }
+      all.push(s1);
+
+      // --- STAGE 2: 분수만큼 얼마인지 알아보기 (5 questions) ---
+      const s2 = [];
+      const emojis = ["🍬", "🍎", "🍪", "🍓", "⚽", "🌟"];
+      const usedS2 = new Set();
+      while (s2.length < 5) {
+        const den = randInt(3, 6);
+        const perGroup = randInt(2, 4);
+        const total = den * perGroup;
+        const num = randInt(1, den - 1);
+        const key = `${total}-${num}/${den}`;
+        if (usedS2.has(key)) continue;
+        usedS2.add(key);
+
+        const ans = perGroup * num;
+        const emoji = emojis[s2.length % emojis.length];
+
+        const wrongNums = new Set([perGroup, num, den, total - ans, ans + 1, Math.max(1, ans - 1)]);
+        wrongNums.delete(ans);
+        const wrongArr = Array.from(wrongNums).slice(0, 3);
+
+        const options = shuffleArray([
+          { html: `<span class="text-2xl font-black">${ans}개</span>`, speech: `${ans}개`, isCorrect: true },
+          ...wrongArr.map(w => ({ html: `<span class="text-2xl font-black">${w}개</span>`, speech: `${w}개`, isCorrect: false }))
+        ]);
+
+        s2.push({
+          promptHtml: `${emoji} <strong>${total}개</strong>의 ${fmtFrac(num, den)}은 몇 개인가요?`,
+          promptSpeech: `${total}개의 ${speakFrac(num, den)}은 몇 개인가요?`,
+          visualHtml: renderGroupedItemsSVG(total, den, num, emoji, true),
+          hintSpeech: `노란색으로 표시된 ${num}묶음 안에 들어있는 개수를 모두 세어보세요. 한 묶음에 ${perGroup}개씩 있어요!`,
+          hintHtml: `전체를 똑같이 <strong>${den}묶음</strong>으로 나눈 것 중 색칠된 <strong>${num}묶음</strong>의 개수를 세어보세요! (${perGroup}개씩 ${num}묶음)`,
+          options
+        });
+      }
+      all.push(s2);
+
+      // --- STAGE 3: 진분수·가분수 알아보기 (5 questions) ---
+      const s3 = [];
+      for (let i = 0; i < 5; i++) {
+        if (i % 2 === 0) {
+          // Type A: Classify a given fraction as 진분수 or 가분수
+          const den = randInt(3, 8);
+          const isImproper = randInt(0, 1) === 1;
+          const num = isImproper ? randInt(den, den + 4) : randInt(1, den - 1);
+
+          const options = shuffleArray([
+            { html: `<span class="text-2xl font-black">진분수</span>`, speech: "진분수", isCorrect: !isImproper },
+            { html: `<span class="text-2xl font-black">가분수</span>`, speech: "가분수", isCorrect: isImproper },
+            { html: `<span class="text-2xl font-black">대분수</span>`, speech: "대분수", isCorrect: false },
+            { html: `<span class="text-2xl font-black">자연수 1</span>`, speech: "자연수 1", isCorrect: false }
+          ]);
+
+          s3.push({
+            promptHtml: `분수 ${fmtFrac(num, den)}은 어떤 분수일까요?`,
+            promptSpeech: `분수 ${speakFrac(num, den)}은 어떤 분수일까요?`,
+            visualHtml: renderMultiUnitsVisual(den, num, "bar", true),
+            hintSpeech: `분자 ${num}과 분모 ${den}의 크기를 비교해 보세요. 분자가 분모보다 작으면 진분수, 같거나 크면 가분수예요!`,
+            hintHtml: `분자(<strong>${num}</strong>)와 분모(<strong>${den}</strong>)를 비교해 보세요! 1보다 작으면 <strong>진분수</strong>, 1과 같거나 크면 <strong>가분수</strong>예요.`,
+            options
+          });
+        } else {
+          // Type B: Find the 진분수 (or 가분수) among 4 fractions
+          const askImproper = i === 1;
+          const den = randInt(4, 7);
+          let targetNum, others;
+          if (askImproper) {
+            targetNum = randInt(den, den + 3);
+            others = [1, 2, den - 1].slice(0, 3);
+          } else {
+            targetNum = randInt(1, den - 1);
+            others = [den, den + 1, den + 2];
+          }
+
+          const options = shuffleArray([
+            { html: fmtFrac(targetNum, den), speech: speakFrac(targetNum, den), isCorrect: true },
+            ...others.map(on => ({ html: fmtFrac(on, den), speech: speakFrac(on, den), isCorrect: false }))
+          ]);
+
+          s3.push({
+            promptHtml: `다음 분수 중 <strong>${askImproper ? "가분수" : "진분수"}</strong>를 찾아보세요!`,
+            promptSpeech: `다음 분수 중 ${askImproper ? "가분수" : "진분수"}를 찾아보세요!`,
+            visualHtml: `
+              <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-4 bg-white px-5 py-3 rounded-2xl border-2 border-sky-200">
+                  <div><span class="font-black text-sky-700">진분수</span> : 분자 &lt; 분모 (1보다 작음)</div>
+                  <div class="text-slate-300">|</div>
+                  <div><span class="font-black text-amber-700">가분수</span> : 분자 ≥ 분모 (1과 같거나 큼)</div>
+                </div>
+              </div>
+            `,
+            hintSpeech: askImproper
+              ? `분자가 분모와 같거나 더 큰 분수를 찾아보세요!`
+              : `분자가 분모보다 작은 분수를 찾아보세요!`,
+            hintHtml: askImproper
+              ? `위쪽 숫자(<strong>분자</strong>)가 아래쪽 숫자(<strong>분모</strong>)와 같거나 더 큰 분수를 고르세요!`
+              : `위쪽 숫자(<strong>분자</strong>)가 아래쪽 숫자(<strong>분모</strong>)보다 작은 분수를 고르세요!`,
+            options
+          });
+        }
+      }
+      all.push(s3);
+
+      // --- STAGE 4: 대분수 알아보기 (5 questions) ---
+      const s4 = [];
+      const usedS4 = new Set();
+      while (s4.length < 5) {
+        const den = randInt(3, 6);
+        const whole = randInt(1, 3);
+        const num = randInt(1, den - 1);
+        const key = `${whole}-${num}/${den}`;
+        if (usedS4.has(key)) continue;
+        usedS4.add(key);
+
+        const totalParts = whole * den + num;
+        const correctHtml = fmtMixed(whole, num, den);
+        const correctSpeech = speakMixed(whole, num, den);
+
+        const distractors = [
+          { html: fmtMixed(whole + 1, num, den), speech: speakMixed(whole + 1, num, den), isCorrect: false },
+          { html: fmtMixed(whole, den - num === num ? Math.max(1, num - 1) : den - num, den), speech: speakMixed(whole, den - num === num ? Math.max(1, num - 1) : den - num, den), isCorrect: false },
+          { html: fmtFrac(totalParts, den), speech: speakFrac(totalParts, den), isCorrect: false }
+        ];
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          ...distractors
+        ]);
+
+        s4.push({
+          promptHtml: `그림이 나타내는 <strong>대분수</strong>는 얼마인가요?`,
+          promptSpeech: `그림이 나타내는 대분수는 얼마인가요?`,
+          visualHtml: renderMultiUnitsVisual(den, totalParts, "pie", false),
+          hintSpeech: `온전한 1이 ${whole}개 있고, 남은 조각이 ${den}분의 ${num}만큼 있어요! 자연수와 진분수를 합쳐 읽어보세요.`,
+          hintHtml: `온전한 동그라미 <strong>${whole}개</strong>와 남은 조각 <strong>${fmtFrac(num, den)}</strong>을 함께 쓰면 <strong>${fmtMixed(whole, num, den)}</strong>이에요!`,
+          options
+        });
+      }
+      all.push(s4);
+
+      // --- STAGE 5: 가분수를 대분수로 바꾸기 (5 questions) ---
+      const s5 = [];
+      const usedS5 = new Set();
+      while (s5.length < 5) {
+        const den = randInt(3, 6);
+        const whole = randInt(1, 3);
+        const num = randInt(1, den - 1);
+        const impNum = whole * den + num;
+        const key = `${impNum}/${den}`;
+        if (usedS5.has(key)) continue;
+        usedS5.add(key);
+
+        const correctHtml = fmtMixed(whole, num, den);
+        const correctSpeech = speakMixed(whole, num, den);
+
+        const d1Whole = whole + 1;
+        const d2Num = num === 1 ? 2 : 1;
+        const d3Whole = Math.max(1, whole - 1);
+        const d3Num = d3Whole === whole ? Math.min(den - 1, num + 1) : num;
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          { html: fmtMixed(d1Whole, num, den), speech: speakMixed(d1Whole, num, den), isCorrect: false },
+          { html: fmtMixed(whole, d2Num, den), speech: speakMixed(whole, d2Num, den), isCorrect: false },
+          { html: fmtMixed(d3Whole, d3Num, den), speech: speakMixed(d3Whole, d3Num, den), isCorrect: false }
+        ]);
+
+        s5.push({
+          promptHtml: `가분수 ${fmtFrac(impNum, den)}을 <strong>대분수</strong>로 바르게 바꾼 것은?`,
+          promptSpeech: `가분수 ${speakFrac(impNum, den)}을 대분수로 바르게 바꾼 것은 무엇인가요?`,
+          visualHtml: renderMultiUnitsVisual(den, impNum, "bar", true),
+          hintSpeech: `${den}칸이 모이면 자연수 1이 돼요! 그림에서 꽉 찬 막대가 ${whole}개이고 ${num}칸이 남았어요.`,
+          hintHtml: `<strong>${den}칸</strong>이 꽉 차면 <strong>자연수 1</strong>이에요! 꽉 찬 막대 <strong>${whole}개</strong>와 남은 <strong>${num}칸</strong>을 세어보세요.`,
+          options
+        });
+      }
+      all.push(s5);
+
+      // --- STAGE 6: 대분수를 가분수로 바꾸기 (5 questions) ---
+      const s6 = [];
+      const usedS6 = new Set();
+      while (s6.length < 5) {
+        const den = randInt(3, 6);
+        const whole = randInt(1, 3);
+        const num = randInt(1, den - 1);
+        const key = `${whole}-${num}/${den}`;
+        if (usedS6.has(key)) continue;
+        usedS6.add(key);
+
+        const impNum = whole * den + num;
+        const correctHtml = fmtFrac(impNum, den);
+        const correctSpeech = speakFrac(impNum, den);
+
+        const distractors = [
+          { html: fmtFrac(whole + num, den), speech: speakFrac(whole + num, den), isCorrect: false },
+          { html: fmtFrac(impNum + 1, den), speech: speakFrac(impNum + 1, den), isCorrect: false },
+          { html: fmtFrac(Math.max(den + 1, impNum - 1), den), speech: speakFrac(Math.max(den + 1, impNum - 1), den), isCorrect: false }
+        ];
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          ...distractors
+        ]);
+
+        s6.push({
+          promptHtml: `대분수 ${fmtMixed(whole, num, den)}을 <strong>가분수</strong>로 바르게 바꾼 것은?`,
+          promptSpeech: `대분수 ${speakMixed(whole, num, den)}을 가분수로 바르게 바꾼 것은 무엇인가요?`,
+          visualHtml: renderMultiUnitsVisual(den, impNum, "pie", true),
+          hintSpeech: `자연수 1개마다 ${den}조각씩 들어있어요! ${den}조각씩 ${whole}묶음에 남은 ${num}조각을 모두 더해보세요.`,
+          hintHtml: `자연수 <strong>${whole}</strong>은 ${den}조각씩 ${whole}개이므로 <strong>${whole * den}조각</strong>! 여기에 <strong>${num}조각</strong>을 더하면 모두 몇 조각일까요?`,
+          options
+        });
+      }
+      all.push(s6);
+
+      // --- STAGE 7: 분모가 같은 분수의 크기 비교하기 (5 questions) ---
+      const s7 = [];
+      for (let i = 0; i < 5; i++) {
+        const den = randInt(4, 8);
+        let leftParts, rightParts, leftHtml, rightHtml, leftSpeech, rightSpeech;
+
+        if (i === 0) {
+          // Proper vs Proper
+          leftParts = randInt(1, den - 2);
+          rightParts = randInt(leftParts + 1, den - 1);
+          if (randInt(0, 1) === 1) [leftParts, rightParts] = [rightParts, leftParts];
+          leftHtml = fmtFrac(leftParts, den);
+          rightHtml = fmtFrac(rightParts, den);
+          leftSpeech = speakFrac(leftParts, den);
+          rightSpeech = speakFrac(rightParts, den);
+        } else if (i === 1) {
+          // Improper vs Improper
+          leftParts = randInt(den + 1, den * 2 + 2);
+          rightParts = randInt(den + 1, den * 2 + 2);
+          if (leftParts === rightParts) rightParts += 1;
+          leftHtml = fmtFrac(leftParts, den);
+          rightHtml = fmtFrac(rightParts, den);
+          leftSpeech = speakFrac(leftParts, den);
+          rightSpeech = speakFrac(rightParts, den);
+        } else if (i === 2) {
+          // Mixed vs Mixed
+          const w1 = randInt(1, 2), n1 = randInt(1, den - 1);
+          const w2 = randInt(1, 2), n2 = randInt(1, den - 1);
+          leftParts = w1 * den + n1;
+          rightParts = w2 * den + n2;
+          if (leftParts === rightParts) {
+            rightParts += 1;
+          }
+          const rw2 = Math.floor(rightParts / den);
+          const rn2 = rightParts % den || 1;
+          rightParts = rw2 * den + rn2;
+
+          leftHtml = fmtMixed(w1, n1, den);
+          rightHtml = fmtMixed(rw2, rn2, den);
+          leftSpeech = speakMixed(w1, n1, den);
+          rightSpeech = speakMixed(rw2, rn2, den);
+        } else if (i === 3) {
+          // Equal Mixed & Improper!
+          const w = randInt(1, 2);
+          const n = randInt(1, den - 1);
+          leftParts = w * den + n;
+          rightParts = leftParts;
+          if (randInt(0, 1) === 0) {
+            leftHtml = fmtMixed(w, n, den);
+            rightHtml = fmtFrac(rightParts, den);
+            leftSpeech = speakMixed(w, n, den);
+            rightSpeech = speakFrac(rightParts, den);
+          } else {
+            leftHtml = fmtFrac(leftParts, den);
+            rightHtml = fmtMixed(w, n, den);
+            leftSpeech = speakFrac(leftParts, den);
+            rightSpeech = speakMixed(w, n, den);
+          }
+        } else {
+          // Mixed vs Improper (unequal)
+          const w = randInt(1, 2);
+          const n = randInt(1, den - 1);
+          leftParts = w * den + n;
+          rightParts = leftParts + (randInt(0, 1) === 0 ? 1 : -1);
+          leftHtml = fmtMixed(w, n, den);
+          rightHtml = fmtFrac(rightParts, den);
+          leftSpeech = speakMixed(w, n, den);
+          rightSpeech = speakFrac(rightParts, den);
+        }
+
+        let correctSign = "=";
+        if (leftParts > rightParts) correctSign = ">";
+        if (leftParts < rightParts) correctSign = "<";
+
+        const options = [
+          {
+            html: `<span class="text-3xl font-black">&gt;</span><span class="block text-xs font-bold text-slate-500 mt-0.5">왼쪽이 더 크다</span>`,
+            speech: "왼쪽이 더 크다",
+            voiceAliases: ["크다", "왼쪽이 크다", "왼쪽이 더 크다", "부등호 왼쪽"],
+            isCorrect: correctSign === ">"
+          },
+          {
+            html: `<span class="text-3xl font-black">=</span><span class="block text-xs font-bold text-slate-500 mt-0.5">두 분수가 같다</span>`,
+            speech: "같다",
+            voiceAliases: ["같다", "똑같다", "등호", "두 분수가 같다"],
+            isCorrect: correctSign === "="
+          },
+          {
+            html: `<span class="text-3xl font-black">&lt;</span><span class="block text-xs font-bold text-slate-500 mt-0.5">오른쪽이 더 크다</span>`,
+            speech: "오른쪽이 더 크다",
+            voiceAliases: ["작다", "오른쪽이 크다", "오른쪽이 더 크다"],
+            isCorrect: correctSign === "<"
+          }
+        ];
+
+        s7.push({
+          promptHtml: `두 분수의 크기를 비교하여 알맞은 기호를 고르세요!<br/><span class="inline-flex items-center gap-3 mt-2 bg-amber-50 px-5 py-2 rounded-2xl border-2 border-amber-300">${leftHtml} <span class="w-9 h-9 rounded-xl bg-white border-2 border-dashed border-amber-500 inline-flex items-center justify-center text-amber-600">?</span> ${rightHtml}</span>`,
+          promptSpeech: `${leftSpeech} 와 ${rightSpeech} 의 크기를 비교해 보세요. 어느 쪽이 더 클까요?`,
+          visualHtml: renderComparisonBarsVisual(den, leftParts, rightParts, leftHtml, rightHtml),
+          hintSpeech: `위쪽 노란 막대(${leftParts}칸)와 아래쪽 파란 막대(${rightParts}칸)의 길이를 비교해 보세요! 칸 수가 더 많은 쪽이 큰 분수예요.`,
+          hintHtml: `위쪽 막대는 <strong>${leftParts}칸</strong>, 아래쪽 막대는 <strong>${rightParts}칸</strong>이에요! 막대 길이가 더 긴 쪽으로 입을 벌려요.`,
+          options
+        });
+      }
+      all.push(s7);
+
+      return all;
+    }
+
+    /*************************************************************************
+     * 5. CONCEPT CARDS (10-SECOND VISUAL SCAFFOLDING PER STAGE)
+     *************************************************************************/
+    const STAGE_CONCEPTS = [
+      {
+        badge: "1단계 개념 쏙쏙",
+        title: "분수로 나타내기: 전체를 똑같이 나눈 것 중 얼마?",
+        speech: "1단계 분수로 나타내기! 전체를 똑같이 4조각으로 나눈 것 중 3조각을 색칠하면 4분의 3이라고 쓰고 읽어요.",
+        visualHtml: `
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            ${renderPieSVG(4, 3, 140)}
+            <div class="text-center sm:text-left">
+              <div class="text-4xl font-black text-rose-600 mb-1">${fmtFrac(3, 4)} <span class="text-xl text-slate-700">(4분의 3)</span></div>
+              <p class="text-sm font-bold text-slate-600">위의 수 <strong>3 (분자)</strong> : 색칠한 조각 수</p>
+              <p class="text-sm font-bold text-slate-600">아래 수 <strong>4 (분모)</strong> : 전체를 똑같이 나눈 조각 수</p>
+            </div>
+          </div>
+        `,
+        bullets: [
+          "1️⃣ 전체를 <strong>똑같이</strong> 몇 조각으로 나누었는지 세어 아래(<strong>분모</strong>)에 써요.",
+          "2️⃣ 그중 색칠한 조각이 몇 개인지 세어 위(<strong>분자</strong>)에 쓰면 완성!"
+        ]
+      },
+      {
+        badge: "2단계 개념 쏙쏙",
+        title: "분수만큼 얼마인지 알아보기: 똑같이 묶어 세기!",
+        speech: "2단계 분수만큼 얼마인지 알아보기! 사탕 8개의 4분의 3은, 8개를 똑같이 4묶음으로 나눈 것 중 3묶음이므로 6개입니다.",
+        visualHtml: renderGroupedItemsSVG(8, 4, 3, "🍬", true),
+        bullets: [
+          "1️⃣ 전체 개수를 분모만큼 <strong>똑같은 묶음</strong>으로 나누어요.",
+          "2️⃣ 분자만큼의 묶음을 색칠해 그 안의 개수를 모두 세어보세요!"
+        ]
+      },
+      {
+        badge: "3단계 개념 쏙쏙",
+        title: "진분수와 가분수: 1보다 작을까, 크거나 같을까?",
+        speech: "3단계 진분수와 가분수 알아보기! 분자가 분모보다 작으면 진분수, 분자가 분모와 같거나 크면 가분수라고 해요.",
+        visualHtml: `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+            <div class="bg-white p-4 rounded-2xl border-2 border-sky-200 text-center">
+              <div class="font-jua text-xl text-sky-700 mb-2">진분수 (예: ${fmtFrac(2, 4)})</div>
+              ${renderChocolateBarSVG(4, 2, { width: 220, height: 52, fillColor: "#38BDF8" })}
+              <p class="text-xs font-bold text-slate-600 mt-2">분자 &lt; 분모 (1보다 작은 분수)</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border-2 border-amber-200 text-center">
+              <div class="font-jua text-xl text-amber-700 mb-2">가분수 (예: ${fmtFrac(5, 4)})</div>
+              ${renderMultiUnitsVisual(4, 5, "bar", true)}
+              <p class="text-xs font-bold text-slate-600 mt-2">분자 ≥ 분모 (1과 같거나 큰 분수)</p>
+            </div>
+          </div>
+        `,
+        bullets: [
+          "🔹 <strong>진분수</strong> : 분자가 분모보다 <strong>작은</strong> 분수 (진짜 분수!)",
+          "🔸 <strong>가분수</strong> : 분자가 분모와 <strong>같거나 더 큰</strong> 분수"
+        ]
+      },
+      {
+        badge: "4단계 개념 쏙쏙",
+        title: "대분수 알아보기: 자연수와 진분수의 합체!",
+        speech: "4단계 대분수 알아보기! 온전한 자연수 1과 진분수 4분의 1이 합쳐지면 1과 4분의 1이라고 읽고 대분수라고 부릅니다.",
+        visualHtml: `
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            ${renderMultiUnitsVisual(4, 5, "pie", false)}
+            <div class="text-center sm:text-left">
+              <div class="text-4xl font-black text-purple-700 mb-1">${fmtMixed(1, 1, 4)}</div>
+              <div class="text-base font-bold text-slate-700">읽기: <strong>1과 4분의 1</strong></div>
+              <p class="text-xs font-bold text-slate-500 mt-1">자연수(1) + 진분수(1/4)로 이루어진 분수!</p>
+            </div>
+          </div>
+        `,
+        bullets: [
+          "🍰 온전한 1개짜리(<strong>자연수</strong>)와 조각난 부분(<strong>진분수</strong>)을 나란히 써요.",
+          "🗣️ 읽을 때는 자연수 뒤에 <strong>'~과'</strong>를 붙여 <strong>'1과 4분의 1'</strong>처럼 읽어요."
+        ]
+      },
+      {
+        badge: "5단계 개념 쏙쏙",
+        title: "가분수를 대분수로 바꾸기: 조각 모아 1 만들기!",
+        speech: "5단계 가분수를 대분수로 바꾸기! 3분의 7은 3조각씩 두 묶음을 모아 자연수 2를 만들고, 1조각이 남아 2와 3분의 1이 됩니다.",
+        visualHtml: `
+          <div class="flex flex-col items-center gap-3">
+            ${renderMultiUnitsVisual(3, 7, "bar", true)}
+            <div class="text-2xl font-black text-emerald-700 bg-white px-5 py-2 rounded-2xl border-2 border-emerald-200">
+              ${fmtFrac(7, 3)} = ${fmtMixed(2, 1, 3)}
+            </div>
+          </div>
+        `,
+        bullets: [
+          "🧩 분모만큼 조각이 모이면 <strong>온전한 자연수 1</strong>이 돼요!",
+          "✨ 꽉 찬 1이 몇 개인지 세어 앞에 쓰고, 남은 조각을 진분수로 뒤에 써요."
+        ]
+      },
+      {
+        badge: "6단계 개념 쏙쏙",
+        title: "대분수를 가분수로 바꾸기: 자연수를 조각으로 쪼개기!",
+        speech: "6단계 대분수를 가분수로 바꾸기! 2와 3분의 1에서 자연수 2는 3조각씩 2개이므로 6조각이고, 남은 1조각을 더해 3분의 7이 됩니다.",
+        visualHtml: `
+          <div class="flex flex-col items-center gap-3">
+            ${renderMultiUnitsVisual(3, 7, "pie", true)}
+            <div class="text-2xl font-black text-orange-700 bg-white px-5 py-2 rounded-2xl border-2 border-orange-200">
+              ${fmtMixed(2, 1, 3)} = ${fmtFrac(7, 3)}
+            </div>
+          </div>
+        `,
+        bullets: [
+          "✂️ 자연수 1개를 분모만큼의 <strong>작은 조각</strong>으로 똑같이 잘라요.",
+          "➕ 자른 조각 수와 원래 있던 진분수의 분자를 <strong>모두 더하면</strong> 끝!"
+        ]
+      },
+      {
+        badge: "7단계 개념 쏙쏙",
+        title: "분모가 같은 분수의 크기 비교하기",
+        speech: "7단계 분모가 같은 분수의 크기 비교! 한 칸의 크기가 같으므로 색칠된 칸 수가 더 많은 쪽, 즉 막대가 더 긴 쪽이 큽니다.",
+        visualHtml: renderComparisonBarsVisual(5, 7, 6, fmtMixed(1, 2, 5), fmtFrac(6, 5)),
+        bullets: [
+          "📏 분모가 같으면 한 조각의 크기가 같아서 <strong>조각 수(분자)가 많은 쪽</strong>이 커요!",
+          "🔄 대분수와 가분수를 비교할 때는 <strong>가분수로 바꾸거나 막대 길이</strong>를 비교해 보세요."
+        ]
+      }
+    ];
+
+    /*************************************************************************
+     * 6. SOUND EFFECTS (TONE.JS) & KOREAN TTS ENGINE
+     *************************************************************************/
+    let synth = null;
+    function playSound(type) {
+      try {
+        if (!synth) {
+          synth = new Tone.PolySynth(Tone.Synth).toDestination();
+          synth.volume.value = -8;
+        }
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        const now = Tone.now();
+        if (type === 'correct') {
+          synth.triggerAttackRelease(["C5", "E5", "G5"], "16n", now);
+          synth.triggerAttackRelease("C6", "8n", now + 0.14);
+        } else if (type === 'wrong') {
+          synth.triggerAttackRelease(["E4", "C4"], "8n", now);
+        } else if (type === 'clear') {
+          synth.triggerAttackRelease("C5", "16n", now);
+          synth.triggerAttackRelease("E5", "16n", now + 0.1);
+          synth.triggerAttackRelease("G5", "16n", now + 0.2);
+          synth.triggerAttackRelease("C6", "4n", now + 0.32);
+        } else if (type === 'click') {
+          synth.triggerAttackRelease("G5", "32n", now);
+        }
+      } catch (e) {
+        // Ignore audio context autoplay blocks gracefully
+      }
+    }
+
+    function speakText(text) {
+      lastSpokenText = text;
+      if (!ttsEnabled || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ko-KR';
+        utter.rate = 0.96; // Clear, child-friendly pace
+        utter.pitch = 1.08;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    function replayCurrentSpeech() {
+      playSound('click');
+      if (lastSpokenText) speakText(lastSpokenText);
+    }
+
+    function toggleTTS() {
+      ttsEnabled = !ttsEnabled;
+      const label = document.getElementById('tts-label');
+      const btn = document.getElementById('btn-tts-toggle');
+      if (ttsEnabled) {
+        label.textContent = "🔊 읽어주기 ON";
+        btn.className = "dwell-target bg-emerald-100 hover:bg-emerald-200 text-emerald-900 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-1";
+        speakText("음성 읽어주기가 켜졌습니다.");
+      } else {
+        label.textContent = "🔇 읽어주기 OFF";
+        btn.className = "dwell-target bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-1";
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    /*************************************************************************
+     * 7. HANDS-FREE ACCESSIBILITY MODES (DWELL 1.5s & WEB SPEECH API)
+     *************************************************************************/
+    let dwellTimer = null;
+    let currentDwellEl = null;
+
+    function setupDwellListeners() {
+      document.addEventListener('pointerover', (e) => {
+        if (controlMode !== 'dwell') return;
+        const target = e.target.closest('.dwell-target');
+        if (!target || target === currentDwellEl) return;
+
+        clearDwell();
+        currentDwellEl = target;
+        target.classList.add('dwell-active');
+        dwellTimer = setTimeout(() => {
+          if (currentDwellEl === target) {
+            clearDwell();
+            target.click();
+          }
+        }, 1500);
+      });
+
+      document.addEventListener('pointerout', (e) => {
+        if (!currentDwellEl) return;
+        const related = e.relatedTarget ? e.relatedTarget.closest('.dwell-target') : null;
+        if (related !== currentDwellEl) {
+          clearDwell();
+        }
+      });
+    }
+
+    function clearDwell() {
+      if (dwellTimer) {
+        clearTimeout(dwellTimer);
+        dwellTimer = null;
+      }
+      if (currentDwellEl) {
+        currentDwellEl.classList.remove('dwell-active');
+        currentDwellEl = null;
+      }
+    }
+
+    // Web Speech API (ko-KR)
+    let recognition = null;
+    let isRecognizing = false;
+
+    function initSpeechRecognition() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRec) return null;
+      const rec = new SpeechRec();
+      rec.lang = 'ko-KR';
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      rec.onstart = () => {
+        isRecognizing = true;
+        document.getElementById('voice-status-text').textContent =
+          '마이크 듣는 중... "1번", "2번", "3번", "4번" 또는 정답을 말해보세요!';
+      };
+
+      rec.onresult = (event) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript.trim();
+          if (event.results[i].isFinal) finalTranscript += t;
+          else interimTranscript += t;
+        }
+        const heard = finalTranscript || interimTranscript;
+        if (heard) {
+          document.getElementById('voice-transcript').textContent = `인식된 말: "${heard}"`;
+          if (finalTranscript) {
+            processVoiceCommand(finalTranscript);
+          }
+        }
+      };
+
+      rec.onerror = (event) => {
+        if (event.error === 'not-allowed') {
+          document.getElementById('voice-status-text').textContent =
+            '마이크 권한이 차단되어 있어요. 브라우저 주소창에서 마이크를 허용하거나 "대고만 있기" 모드를 써보세요!';
+        }
+      };
+
+      rec.onend = () => {
+        isRecognizing = false;
+        if (controlMode === 'voice') {
+          try { rec.start(); } catch (e) {}
+        }
+      };
+
+      return rec;
+    }
+
+    function restartVoiceRecognition() {
+      if (recognition) {
+        try { recognition.stop(); } catch (e) {}
+        setTimeout(() => {
+          try { recognition.start(); } catch (e) {}
+        }, 250);
+      }
+    }
+
+    function processVoiceCommand(rawText) {
+      const text = rawText.replace(/\s+/g, '').toLowerCase();
+
+      // Global navigation voice commands
+      if (text.includes('지도') || text.includes('처음으로') || text.includes('홈')) {
+        goHome();
+        return;
+      }
+      if (text.includes('다시듣기') || text.includes('읽어줘')) {
+        replayCurrentSpeech();
+        return;
+      }
+
+      // Screen-specific voice commands
+      if (currentScreen === 'home') {
+        if (text.includes('시작') || text.includes('출발') || text.includes('1단계') || text.includes('일단계')) {
+          startStage(0);
+          return;
+        }
+        for (let s = 1; s <= 7; s++) {
+          if (text.includes(`${s}단계`)) {
+            startStage(s - 1);
+            return;
+          }
+        }
+      } else if (currentScreen === 'concept') {
+        if (text.includes('시작') || text.includes('문제') || text.includes('이해') || text.includes('1번') || text.includes('일번')) {
+          beginStageQuestions();
+          return;
+        }
+      } else if (currentScreen === 'quiz') {
+        if (currentQuestionSolved && (text.includes('다음') || text.includes('계속') || text.includes('넘어가'))) {
+          handleNextQuestion();
+          return;
+        }
+
+        // Check 1~4 option selection
+        const optionBtns = document.querySelectorAll('#options-grid button');
+        if (!optionBtns.length) return;
+
+        const choicePatterns = [
+          ['1번', '일번', '첫번째', '하나', '1'],
+          ['2번', '이번', '두번째', '둘', '2'],
+          ['3번', '삼번', '세번째', '셋', '3'],
+          ['4번', '사번', '네번째', '넷', '4']
+        ];
+
+        for (let idx = 0; idx < optionBtns.length; idx++) {
+          if (choicePatterns[idx].some(p => text === p || text.includes(choicePatterns[idx][0]) || text.includes(choicePatterns[idx][1]) || text.includes(choicePatterns[idx][2]))) {
+            optionBtns[idx].click();
+            return;
+          }
+        }
+
+        // Also match spoken answer text directly (e.g., "진분수", "가분수", "크다", "같다", "작다", "4분의 3")
+        const q = stageQuestions[currentStageIndex][currentQuestionIndex];
+        q.options.forEach((opt, idx) => {
+          const cleanSpeech = opt.speech.replace(/\s+/g, '').toLowerCase();
+          const aliases = opt.voiceAliases ? opt.voiceAliases.map(a => a.replace(/\s+/g, '').toLowerCase()) : [];
+          if (text.includes(cleanSpeech) || aliases.some(a => text.includes(a))) {
+            if (optionBtns[idx]) optionBtns[idx].click();
+          }
+        });
+      } else if (currentScreen === 'stage-clear') {
+        if (text.includes('다음') || text.includes('출발')) {
+          goToNextStage();
+        } else if (text.includes('다시')) {
+          retryCurrentStageNewNumbers();
+        }
+      }
+    }
+
+    function setControlMode(mode) {
+      controlMode = mode;
+      clearDwell();
+      playSound('click');
+
+      const modes = ['touch', 'dwell', 'voice'];
+      modes.forEach(m => {
+        const btn = document.getElementById(`mode-${m}`);
+        if (m === mode) {
+          btn.className = "dwell-target px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition bg-white text-sky-700 shadow-sm ring-2 ring-sky-400";
+        } else {
+          btn.className = "dwell-target px-3 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition text-slate-600 hover:bg-white/60";
+        }
+      });
+
+      const voiceBanner = document.getElementById('voice-banner');
+      if (mode === 'voice') {
+        voiceBanner.classList.remove('hidden');
+        if (!recognition) {
+          recognition = initSpeechRecognition();
+        }
+        if (recognition) {
+          try { recognition.start(); } catch (e) {}
+          speakText("말로 풀기 모드입니다. 화면을 만지지 않고 1번, 2번, 3번, 4번을 말해보세요!");
+        } else {
+          document.getElementById('voice-status-text').textContent =
+            '이 브라우저는 음성 인식을 지원하지 않아요. 대신 "대고만 있기(1.5초)" 모드를 사용해보세요!';
+          speakText("이 브라우저는 음성 인식을 지원하지 않아요. 대고만 있기 모드를 사용해 보세요.");
+        }
+      } else {
+        voiceBanner.classList.add('hidden');
+        if (recognition && isRecognizing) {
+          try { recognition.stop(); } catch (e) {}
+        }
+        if (mode === 'dwell') {
+          speakText("대고만 있기 모드입니다. 버튼 위에 1.5초 동안 가만히 올려두면 자동으로 눌립니다.");
+        }
+      }
+    }
+
+    /*************************************************************************
+     * 8. SCREEN NAVIGATION & QUIZ FLOW
+     *************************************************************************/
+    function switchScreen(screenName) {
+      currentScreen = screenName;
+      ['home', 'concept', 'quiz', 'stage-clear', 'trophy'].forEach(s => {
+        document.getElementById(`screen-${s}`).classList.add('hidden');
+      });
+      document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderHomeScreen() {
+      const grid = document.getElementById('stage-cards-grid');
+      const totalStars = stageStars.reduce((a, b) => a + b, 0);
+      document.getElementById('total-stars-display').textContent = `⭐ ${totalStars} / 35`;
+
+      if (totalStars === 35) {
+        document.getElementById('home-trophy-icon').textContent = "🏆🎖️";
+        document.getElementById('home-progress-msg').textContent = "와우! 모든 단계를 별 5개로 완주했어요!";
+      } else if (totalStars > 0) {
+        document.getElementById('home-progress-msg').textContent = `멋져요! 지금까지 별 ${totalStars}개를 모았어요!`;
+      }
+
+      grid.innerHTML = STAGES_META.map((st, idx) => {
+        const stars = stageStars[idx];
+        const isCleared = stars > 0;
+        const starIcons = "⭐".repeat(stars) + "☆".repeat(5 - stars);
+
+        return `
+          <button onclick="startStage(${idx})" class="dwell-target text-left bg-white hover:bg-amber-50/60 rounded-3xl p-5 shadow-md border-3 ${
+            isCleared ? "border-emerald-300" : "border-slate-200 hover:border-amber-300"
+          } flex flex-col justify-between transition">
+            <div class="dwell-fill"></div>
+            <div class="relative z-10 w-full">
+              <div class="flex items-center justify-between mb-2">
+                <span class="inline-block bg-amber-100 text-amber-900 font-jua text-base px-3 py-1 rounded-full">
+                  ${st.num}
+                </span>
+                <span class="text-2xl">${st.icon}</span>
+              </div>
+              <h3 class="font-jua text-xl text-slate-800 mb-1">${st.title}</h3>
+              <p class="text-xs sm:text-sm text-slate-500 mb-3">${st.shortDesc}</p>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <span class="text-sm tracking-wider">${starIcons}</span>
+                <span class="text-xs font-bold ${isCleared ? "text-emerald-700" : "text-sky-700"}">
+                  ${isCleared ? "다시 도전 →" : "도전하기 →"}
+                </span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function goHome() {
+      playSound('click');
+      renderHomeScreen();
+      switchScreen('home');
+    }
+
+    function startStage(stageIdx) {
+      playSound('click');
+      currentStageIndex = stageIdx;
+      showConceptScreen(stageIdx);
+    }
+
+    function showConceptScreen(stageIdx) {
+      const concept = STAGE_CONCEPTS[stageIdx];
+      document.getElementById('concept-stage-badge').textContent = concept.badge;
+      document.getElementById('concept-title').textContent = concept.title;
+      document.getElementById('concept-visual').innerHTML = concept.visualHtml;
+      document.getElementById('concept-explanation').innerHTML = concept.bullets
+        .map(b => `<p>${b}</p>`)
+        .join('');
+
+      switchScreen('concept');
+      speakText(concept.speech);
+    }
+
+    function beginStageQuestions() {
+      playSound('click');
+      currentQuestionIndex = 0;
+      loadQuestion();
+      switchScreen('quiz');
+    }
+
+    function loadQuestion() {
+      currentQuestionSolved = false;
+      currentQuestionHadMistake = false;
+
+      const stageMeta = STAGES_META[currentStageIndex];
+      const q = stageQuestions[currentStageIndex][currentQuestionIndex];
+
+      document.getElementById('quiz-stage-name').textContent = `${stageMeta.num}: ${stageMeta.title}`;
+      document.getElementById('question-number-pill').textContent = `문제 ${currentQuestionIndex + 1} / 5`;
+      document.getElementById('question-prompt').innerHTML = q.promptHtml;
+      document.getElementById('question-visual').innerHTML = q.visualHtml;
+
+      // Render 5 progress dots
+      const dotsWrap = document.getElementById('quiz-progress-dots');
+      dotsWrap.innerHTML = [0, 1, 2, 3, 4].map(i => {
+        if (i < currentQuestionIndex) {
+          return `<span class="w-4 h-4 rounded-full bg-emerald-500 inline-block"></span>`;
+        } else if (i === currentQuestionIndex) {
+          return `<span class="w-5 h-5 rounded-full bg-amber-400 ring-4 ring-amber-200 inline-block"></span>`;
+        }
+        return `<span class="w-4 h-4 rounded-full bg-slate-200 inline-block"></span>`;
+      }).join('');
+
+      // Reset feedback & next button
+      const fbBox = document.getElementById('feedback-box');
+      fbBox.classList.add('hidden');
+      document.getElementById('next-action-wrap').classList.add('hidden');
+
+      // Render large accessible option buttons
+      const optGrid = document.getElementById('options-grid');
+      optGrid.className = q.options.length === 3
+        ? "grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4"
+        : "grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4";
+
+      const badgeColors = [
+        "bg-amber-500 text-white",
+        "bg-sky-500 text-white",
+        "bg-emerald-500 text-white",
+        "bg-purple-500 text-white"
+      ];
+
+      optGrid.innerHTML = q.options.map((opt, idx) => `
+        <button id="opt-btn-${idx}" onclick="selectOption(${idx})"
+          class="dwell-target bg-white hover:bg-sky-50 border-3 border-slate-200 hover:border-sky-400 rounded-3xl p-4 sm:p-5 shadow-sm flex items-center gap-4 min-h-[84px] transition">
+          <div class="dwell-fill"></div>
+          <span class="relative z-10 w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${badgeColors[idx]} font-jua text-xl sm:text-2xl flex items-center justify-center shrink-0 shadow-sm">
+            ${idx + 1}번
+          </span>
+          <div class="relative z-10 flex-1 text-center text-xl sm:text-2xl font-bold text-slate-800">
+            ${opt.html}
+          </div>
+        </button>
+      `).join('');
+
+      speakText(q.promptSpeech);
+    }
+
+    function selectOption(optIndex) {
+      if (currentQuestionSolved) return;
+
+      const q = stageQuestions[currentStageIndex][currentQuestionIndex];
+      const selected = q.options[optIndex];
+      const btn = document.getElementById(`opt-btn-${optIndex}`);
+      const fbBox = document.getElementById('feedback-box');
+      const fbTitle = document.getElementById('feedback-title');
+      const fbDetail = document.getElementById('feedback-detail');
+
+      if (selected.isCorrect) {
+        currentQuestionSolved = true;
+        playSound('correct');
+
+        btn.className = "dwell-target bg-emerald-100 border-4 border-emerald-500 rounded-3xl p-4 sm:p-5 shadow-md flex items-center gap-4 min-h-[84px]";
+
+        const praises = [
+          "정답이에요! 눈으로 보고 척척 맞혔네요! 🎉",
+          "와우, 완벽해요! 분수 박사님이 다 되었어요! 🌟",
+          "참 잘했어요! 그림을 정확하게 이해했군요! 👏",
+          "최고예요! 다음 문제도 자신 있게 풀어볼까요? ✨"
+        ];
+        const praiseMsg = praises[randInt(0, praises.length - 1)];
+
+        fbBox.className = "rounded-2xl p-4 mb-5 border-2 border-emerald-400 bg-emerald-50 text-emerald-900 text-center animate-pop";
+        fbTitle.textContent = praiseMsg;
+        fbDetail.textContent = `정답은 ${optIndex + 1}번 (${selected.speech}) 입니다!`;
+        fbBox.classList.remove('hidden');
+
+        document.getElementById('next-action-wrap').classList.remove('hidden');
+        const nextBtnText = currentQuestionIndex === 4 ? "🏆 단계 완료 결과 보기!" : "👉 다음 문제로 가기!";
+        document.querySelector('#btn-next-question span').textContent = nextBtnText;
+
+        speakText(`정답입니다! ${praiseMsg}`);
+      } else {
+        currentQuestionHadMistake = true;
+        playSound('wrong');
+
+        btn.classList.remove('animate-shake');
+        void btn.offsetWidth; // trigger reflow
+        btn.classList.add('animate-shake', 'bg-rose-50', 'border-rose-300', 'opacity-70');
+        btn.disabled = true;
+
+        fbBox.className = "rounded-2xl p-4 mb-5 border-2 border-amber-400 bg-amber-50 text-amber-950 text-center animate-pop";
+        fbTitle.textContent = "앗, 조금만 다시 생각해 볼까요? 💡";
+        fbDetail.innerHTML = q.hintHtml;
+        fbBox.classList.remove('hidden');
+
+        speakText(`조금만 다시 생각해 볼까요? ${q.hintSpeech}`);
+      }
+    }
+
+    function handleNextQuestion() {
+      playSound('click');
+      if (currentQuestionIndex < 4) {
+        currentQuestionIndex++;
+        loadQuestion();
+      } else {
+        completeCurrentStage();
+      }
+    }
+
+    function completeCurrentStage() {
+      playSound('clear');
+      // Award 5 stars for clearing the 5-question stage
+      stageStars[currentStageIndex] = 5;
+
+      const allCleared = stageStars.every(s => s === 5);
+      if (allCleared && currentStageIndex === 6) {
+        const total = stageStars.reduce((a, b) => a + b, 0);
+        document.getElementById('final-total-stars').textContent = `${total} / 35`;
+        switchScreen('trophy');
+        speakText("축하합니다! 7단계를 모두 완주하여 분수 마스터 트로피와 오른손 쾌유 응원 배지를 받았습니다!");
+        return;
+      }
+
+      const st = STAGES_META[currentStageIndex];
+      document.getElementById('stage-clear-title').textContent = `${st.num} (${st.title}) 완료!`;
+      document.getElementById('stage-clear-desc').textContent =
+        currentStageIndex < 6
+          ? `정말 멋져요! 이제 ${STAGES_META[currentStageIndex + 1].num}로 떠나볼까요?`
+          : "모든 탐험을 마쳤어요! 전체 트로피를 확인해 보세요!";
+
+      const nextStageBtn = document.getElementById('btn-next-stage');
+      if (currentStageIndex < 6) {
+        nextStageBtn.querySelector('span').textContent = `🚀 ${STAGES_META[currentStageIndex + 1].num}로 출발!`;
+      } else {
+        nextStageBtn.querySelector('span').textContent = `🏆 분수 마스터 트로피 받기!`;
+      }
+
+      switchScreen('stage-clear');
+      speakText(`${st.num} 완료! 정말 잘했어요! 별 다섯 개를 획득했습니다.`);
+    }
+
+    function goToNextStage() {
+      if (currentStageIndex < 6) {
+        startStage(currentStageIndex + 1);
+      } else {
+        const total = stageStars.reduce((a, b) => a + b, 0);
+        document.getElementById('final-total-stars').textContent = `${total} / 35`;
+        switchScreen('trophy');
+      }
+    }
+
+    function retryCurrentStageNewNumbers() {
+      playSound('click');
+      const freshAll = generateAllStageQuestions();
+      stageQuestions[currentStageIndex] = freshAll[currentStageIndex];
+      currentQuestionIndex = 0;
+      loadQuestion();
+      switchScreen('quiz');
+    }
+
+    function regenerateAllAndNotify() {
+      playSound('click');
+      stageQuestions = generateAllStageQuestions();
+      renderHomeScreen();
+      speakText("모든 단계의 문제 숫자를 새롭게 섞었습니다!");
+    }
+
+    function resetFullGameNewNumbers() {
+      playSound('click');
+      stageStars = [0, 0, 0, 0, 0, 0, 0];
+      stageQuestions = generateAllStageQuestions();
+      renderHomeScreen();
+      switchScreen('home');
+      speakText("새로운 숫자로 처음부터 다시 시작합니다!");
+    }
+
+    /*************************************************************************
+     * 9. INITIALIZATION ON WINDOW LOAD
+     *************************************************************************/
+    window.onload = function () {
+      stageQuestions = generateAllStageQuestions();
+      setupDwellListeners();
+      renderHomeScreen();
+    };
+  </script>
+</body>
+</html>
