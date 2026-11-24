@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>분수 전사의 대분수 마을 구출 대작전</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tone.js for crisp RPG sound effects (no external audio URLs) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <!-- Korean Fonts: Jua (friendly rounded headings) & Noto Sans KR (crisp body text) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(145deg, #ECFDF5 0%, #EFF6FF 50%, #FEF3C7 100%);
+      min-height: 100vh;
+      color: #1E293B;
+      overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .font-jua {
+      font-family: 'Jua', sans-serif;
+    }
+
+    /* Guarantee 100% reliable PC click & mobile/tablet tap inside all buttons */
+    button {
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    button * {
+      pointer-events: none;
+    }
+
+    /* Clean Stacked Vertical Fraction Typography */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      line-height: 1.05;
+      margin: 0 3px;
+      font-weight: 900;
+    }
+    .frac-num {
+      border-bottom: 3px solid currentColor;
+      padding: 0 7px 3px 7px;
+      min-width: 1.45em;
+      text-align: center;
+    }
+    .frac-den {
+      padding: 3px 7px 0 7px;
+      min-width: 1.45em;
+      text-align: center;
+    }
+
+    /* Mixed Number Typography (Large Whole Number + Stacked Fraction) */
+    .mixed-frac {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      gap: 4px;
+    }
+    .mixed-whole {
+      font-size: 1.45em;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    /* Smooth Entrance & Shake Feedback Animations */
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes shakeGentle {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+    .animate-shake {
+      animation: shakeGentle 0.38s ease-in-out;
+    }
+  </style>
+</head>
+<body class="pb-12">
+
+  <!-- Sticky Top RPG Utility Header -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-2 border-amber-300 shadow-sm">
+    <div class="max-w-4xl mx-auto px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- Brand + Adventure Run Badge -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" onclick="returnToIntro()" class="bg-amber-100 hover:bg-amber-200 active:scale-95 text-amber-950 px-3.5 py-2 rounded-2xl font-jua text-lg sm:text-xl transition flex items-center gap-1.5">
+          <span>⚔️</span>
+          <span>분수 전사</span>
+        </button>
+        <span id="adventure-run-badge" class="bg-indigo-100 text-indigo-900 border border-indigo-200 font-jua text-sm sm:text-base px-3 py-1 rounded-full">
+          🚩 모험 1회차
+        </span>
+      </div>
+
+      <!-- Utility Controls: Restart with New Random Problems + Korean TTS -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <a href="index.html" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-900 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold transition">
+          ← 로비로 돌아가기
+        </a>
+        <button type="button" id="btn-top-restart" onclick="requestNewRandomRestart()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-extrabold shadow-sm transition flex items-center gap-1">
+          <span>🔄 새 문제로 다시 시작</span>
+        </button>
+        <button type="button" id="btn-tts-toggle" onclick="toggleTTS()" class="bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-950 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold transition">
+          <span id="tts-status-text">🔊 읽어주기 ON</span>
+        </button>
+        <button type="button" onclick="replaySpeech()" title="문제 다시 듣기" class="bg-sky-100 hover:bg-sky-200 active:scale-95 text-sky-950 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold transition">
+          <span>🔁 다시 듣기</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inline Confirmation Bar (Prevents accidental progress loss without browser confirm()) -->
+    <div id="restart-confirm-bar" style="display: none;" class="bg-amber-50 border-t-2 border-amber-300 px-3 py-2.5">
+      <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div class="text-xs sm:text-sm font-bold text-amber-950 flex items-center gap-1.5">
+          <span>🎲</span>
+          <span>지금 진행 중인 모험을 마치고, <strong>완전히 새로운 랜덤 20문제</strong>로 다시 시작할까요?</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="confirmNewRandomRestart()" class="bg-amber-600 hover:bg-amber-700 active:scale-95 text-white text-xs sm:text-sm font-extrabold px-4 py-2 rounded-xl shadow-sm transition">
+            <span>✅ 네, 새 문제로 시작!</span>
+          </button>
+          <button type="button" onclick="cancelNewRandomRestart()" class="bg-white hover:bg-slate-100 active:scale-95 text-slate-700 border border-slate-300 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition">
+            <span>계속 풀기</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-4xl mx-auto px-3 sm:px-5 pt-5">
+
+    <!-- ===================================================================
+         SCREEN 1: INTRO / STORY START SCREEN
+    ==================================================================== -->
+    <section id="screen-intro" class="animate-pop">
+      <div class="bg-white rounded-3xl p-6 sm:p-9 shadow-xl border-4 border-amber-300 text-center">
+        <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-900 font-bold text-xs sm:text-sm px-4 py-1.5 rounded-full mb-4">
+          <span>🧠 그림 힌트 없이 머릿속으로 계산하는 20단계 RPG 모험</span>
+        </div>
+
+        <div class="text-6xl sm:text-7xl mb-3">⚔️🏰✨</div>
+
+        <h1 class="font-jua text-3xl sm:text-5xl text-slate-800 mb-3 leading-tight">
+          분수 전사의<br class="sm:hidden" />
+          <span class="text-amber-600">대분수 마을 구출 대작전!</span>
+        </h1>
+
+        <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
+          마법의 성에 갇힌 <strong>대분수 마을 친구 10명</strong>을 구하기 위해 용감한 <strong>분수 전사</strong>가 모험을 떠납니다!<br />
+          시작할 때마다 <strong>20문제의 숫자가 모두 새롭게 랜덤 출제</strong>되니, 몇 번이고 다시 도전해 분수 마스터가 되어보세요!
+        </p>
+
+        <!-- Two-Act Mission Preview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-7 text-left">
+          <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4">
+            <div class="font-jua text-xl text-emerald-800 mb-1">
+              🌲 1막 (1번 ~ 10번 문제)
+            </div>
+            <div class="font-bold text-slate-800 text-sm mb-1">아이템 수집의 숲 : 가분수 ➔ 대분수</div>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              숲속 문지기들이 내는 <strong>가분수</strong>를 <strong>대분수</strong>로 바꾸고, 구출에 꼭 필요한 모험 아이템 10개를 전사의 가방에 채워요!
+            </p>
+          </div>
+
+          <div class="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4">
+            <div class="font-jua text-xl text-indigo-800 mb-1">
+              🚪 2막 (11번 ~ 20번 문제)
+            </div>
+            <div class="font-bold text-slate-800 text-sm mb-1">대분수 마을 탈출 작전 : 대분수 ➔ 가분수</div>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <strong>대분수 모습으로는 좁은 탈출구를 빠져나올 수 없어요!</strong> 모은 아이템을 사용해 친구들을 <strong>가분수</strong>로 변신시켜 탈출시키세요!
+            </p>
+          </div>
+        </div>
+
+        <button type="button" onclick="startNewAdventureRun(false)" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-white font-jua text-2xl sm:text-3xl px-10 py-5 rounded-3xl shadow-lg transition">
+          <span>⚔️ 모험 시작하기 (총 20문제)</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 2: ACTIVE GAMEPLAY SCREEN (ACT 1 & ACT 2)
+    ==================================================================== -->
+    <section id="screen-game" style="display: none;" class="animate-pop">
+
+      <!-- Top Status Panel: Act Banner + 10-Slot Item Bag / Rescued Villagers -->
+      <div id="game-status-panel" class="bg-white rounded-3xl p-4 sm:p-5 shadow-md border-2 border-emerald-300 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="act-pill" class="bg-emerald-600 text-white font-jua text-base sm:text-lg px-3.5 py-1 rounded-full">
+              🌲 1막: 아이템 수집의 숲
+            </span>
+            <span id="act-rule-pill" class="text-xs sm:text-sm font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
+              가분수 ➔ 대분수
+            </span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="combo-badge" class="hidden bg-amber-100 text-amber-900 text-xs sm:text-sm font-black px-3 py-1 rounded-full">
+              🔥 연속 정답: 0개
+            </span>
+            <div class="font-jua text-lg sm:text-xl text-slate-700" id="overall-progress-label">
+              전체 진행: 1 / 20문제
+            </div>
+          </div>
+        </div>
+
+        <!-- 10-Slot Inventory / Rescue Tracker Bar -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-2.5">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5 px-1">
+            <span id="tracker-title">🎒 전사의 아이템 가방 (가분수를 대분수로 바꿔 아이템을 모으세요!)</span>
+            <span id="tracker-count" class="text-amber-700 font-black">0 / 10개</span>
+          </div>
+          <div id="tracker-slots" class="grid grid-cols-5 sm:grid-cols-10 gap-1.5">
+            <!-- 10 item or villager slots dynamically rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Battle / Rescue Problem Card (PURE MATHEMATICAL NOTATION — NO VISUAL HINTS) -->
+      <div id="problem-card" class="bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-4 border-emerald-200">
+        <!-- Story Context Banner -->
+        <div id="story-context-box" class="bg-emerald-50/90 border-2 border-emerald-200 rounded-2xl p-3.5 sm:p-4 mb-5 flex items-center gap-3">
+          <div id="story-icon" class="text-3xl sm:text-4xl shrink-0">🗡️</div>
+          <div class="text-left">
+            <div id="story-subtitle" class="text-xs font-extrabold text-amber-800 tracking-wide">
+              1번 숲속 문지기 도전 · 획득 보상: 용기의 검
+            </div>
+            <p id="story-line" class="text-sm sm:text-base font-bold text-slate-800 leading-snug">
+              숲속 문지기가 내는 가분수를 대분수로 바꾸면 아이템을 가방에 넣을 수 있어요!
+            </p>
+          </div>
+        </div>
+
+        <!-- Pure Number Fraction Prompt Box -->
+        <div class="text-center my-5">
+          <p id="question-instruction" class="font-jua text-xl sm:text-2xl text-slate-700 mb-4">
+            다음 가분수를 대분수로 바르게 바꾼 것은 무엇인가요?
+          </p>
+
+          <!-- Prominent Target Fraction Display (Zero Visual Hints) -->
+          <div class="inline-flex items-center justify-center bg-slate-50 border-4 border-slate-300 rounded-3xl px-10 py-6 shadow-inner min-w-[190px]">
+            <div id="target-fraction-display" class="text-4xl sm:text-5xl text-slate-900">
+              <!-- Vertical Fraction HTML injected here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedback / Text-Only Mental Math Hint Box -->
+        <div id="feedback-box" style="display: none;" class="rounded-2xl p-4 mb-5 border-2 text-center">
+          <p id="feedback-title" class="font-jua text-xl sm:text-2xl mb-1"></p>
+          <p id="feedback-detail" class="text-sm sm:text-base font-bold"></p>
+        </div>
+
+        <!-- 4 Oversized Multiple-Choice Answer Buttons -->
+        <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+          <!-- 4 large buttons injected by JS -->
+        </div>
+
+        <!-- Next Question Button (Shown after solving current question) -->
+        <div id="next-btn-container" style="display: none;" class="mt-6 text-center">
+          <button type="button" id="btn-next-question" onclick="goToNextQuestion()" class="w-full sm:w-auto bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 active:scale-95 text-white font-jua text-2xl px-10 py-4 rounded-2xl shadow-lg transition">
+            <span id="btn-next-label">👉 다음 문제로 전진!</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 3: MID-STORY INTERMISSION SCREEN (AFTER QUESTION 10)
+    ==================================================================== -->
+    <section id="screen-transition" style="display: none;" class="animate-pop">
+      <div class="bg-white rounded-3xl p-6 sm:p-9 shadow-2xl border-4 border-indigo-400 text-center max-w-2xl mx-auto">
+        <div class="inline-block bg-emerald-100 text-emerald-900 font-jua text-lg px-4 py-1.5 rounded-full mb-3">
+          🎉 1막 완료! 전사의 아이템 10개 모두 획득!
+        </div>
+
+        <div class="text-5xl sm:text-6xl my-2">🏰🚪✨</div>
+
+        <h2 class="font-jua text-3xl sm:text-4xl text-slate-800 mb-3">
+          드디어 <span class="text-indigo-600">대분수 마을</span>에 도착했어!
+        </h2>
+
+        <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-5 text-left space-y-2.5 mb-6 text-slate-800 text-sm sm:text-base leading-relaxed">
+          <p>
+            😟 <strong>큰일 났어!</strong> 대분수 마을 친구 10명이 마법의 방에 갇혀 있는데, <strong>마을 탈출구가 너무 좁아서 대분수(자연수+진분수) 모습으로는 빠져나올 수가 없대!</strong>
+          </p>
+          <p>
+            ✨ 숲에서 모은 <strong>10개의 아이템</strong>을 하나씩 사용하면 마을 친구들을 날씬한 <strong>가분수</strong>로 변신시켜 빛의 탈출구를 무사히 통과하게 할 수 있어!
+          </p>
+          <p class="font-bold text-indigo-900">
+            🔥 2막 임무 (11번 ~ 20번): 대분수 마을 친구들을 모두 <u>가분수</u>로 변신시켜 탈출시키자!
+          </p>
+        </div>
+
+        <!-- Show All 10 Collected Items Ready for Action -->
+        <div id="transition-items-showcase" class="flex flex-wrap justify-center gap-2 mb-7">
+          <!-- Rendered by JS -->
+        </div>
+
+        <button type="button" onclick="startActTwo()" class="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-jua text-2xl px-10 py-4 rounded-3xl shadow-lg transition">
+          <span>🚪 2막: 대분수 마을 탈출 작전 시작!</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         SCREEN 4: GRAND VICTORY / ENDING SCREEN (AFTER QUESTION 20)
+    ==================================================================== -->
+    <section id="screen-victory" style="display: none;" class="animate-pop">
+      <div class="bg-gradient-to-b from-amber-50 via-white to-emerald-50 rounded-3xl p-7 sm:p-10 shadow-2xl border-4 border-amber-400 text-center max-w-2xl mx-auto">
+        <div class="inline-block bg-amber-100 text-amber-900 font-bold text-sm px-4 py-1.5 rounded-full mb-3">
+          🏆 20단계 구출 작전 대성공!
+        </div>
+
+        <div class="text-6xl sm:text-7xl my-2">👑🎉🏘️</div>
+
+        <h2 class="font-jua text-3xl sm:text-4xl text-slate-800 mb-3">
+          대분수 마을 친구 10명 전원 탈출 성공!
+        </h2>
+
+        <p class="text-slate-700 text-base sm:text-lg leading-relaxed mb-6">
+          그림 힌트 하나 없이 오직 머릿속 계산만으로<br />
+          <strong>가분수를 대분수로</strong>, <strong>대분수를 가분수로</strong> 완벽하게 바꾸어냈어요!<br />
+          당신은 진정한 <strong>전설의 분수 전사</strong>입니다! ⚔️✨
+        </p>
+
+        <!-- Final Score & First-Try Accuracy Stats Summary -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto mb-7">
+          <div class="bg-white border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+            <div class="text-2xl mb-1">⭐</div>
+            <div class="text-xs font-bold text-slate-500">최종 점수</div>
+            <div id="victory-total-score" class="font-jua text-2xl text-amber-600">100점</div>
+          </div>
+          <div class="bg-white border-2 border-sky-300 rounded-2xl p-4 shadow-sm">
+            <div class="text-2xl mb-1">🎯</div>
+            <div class="text-xs font-bold text-slate-500">한 번에 맞힌 정확도</div>
+            <div id="victory-first-try" class="font-jua text-2xl text-sky-600">20 / 20회 (100%)</div>
+          </div>
+          <div class="bg-white border-2 border-emerald-300 rounded-2xl p-4 shadow-sm">
+            <div class="text-2xl mb-1">🔥</div>
+            <div class="text-xs font-bold text-slate-500">최고 연속 정답</div>
+            <div id="victory-max-combo" class="font-jua text-2xl text-emerald-700">20연속</div>
+          </div>
+        </div>
+
+        <button type="button" onclick="startNewAdventureRun(true)" class="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-95 text-white font-jua text-2xl px-9 py-4 rounded-3xl shadow-lg transition">
+          <span>🎲 새로운 문제로 다시 모험하기</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /*************************************************************************
+     * 1. RPG ITEMS, VILLAGERS & GAME STATE
+     *************************************************************************/
+    const RPG_ITEMS = [
+      { icon: "🗡️", name: "용기의 검" },
+      { icon: "🛡️", name: "튼튼한 방패" },
+      { icon: "🥾", name: "바람의 장화" },
+      { icon: "🧭", name: "별빛 나침반" },
+      { icon: "🧪", name: "회복 물약" },
+      { icon: "🔦", name: "지혜의 등불" },
+      { icon: "🪢", name: "마법 밧줄" },
+      { icon: "📜", name: "고대의 지도" },
+      { icon: "💎", name: "수호의 보석" },
+      { icon: "👑", name: "탈출구 마스터키" }
+    ];
+
+    const VILLAGERS = [
+      { icon: "🧑‍🌾", name: "농부 친구" },
+      { icon: "👩‍🍳", name: "빵집 친구" },
+      { icon: "🧒", name: "꼬마 친구" },
+      { icon: "👵", name: "할머니 친구" },
+      { icon: "🧙‍♂️", name: "마법사 친구" },
+      { icon: "👷", name: "목수 친구" },
+      { icon: "👩‍🎨", name: "화가 친구" },
+      { icon: "🧑‍🏫", name: "선생님 친구" },
+      { icon: "👮", name: "경비대장 친구" },
+      { icon: "🤴", name: "대분수 촌장님" }
+    ];
+
+    let adventureRunCount = 1;
+    let previousRunKeys = new Set(); // Stores previous run's problem signatures so restarts guarantee fresh problems
+    let questions = []; // 20 randomized non-repeating questions (0..9 Act 1, 10..19 Act 2)
+    let currentScreen = 'intro';
+    let currentIndex = 0; // 0..19
+    let questionSolved = false;
+    let hadMistakeOnCurrent = false;
+    let firstTryScore = 0;
+    let totalScore = 0;
+    let currentCombo = 0;
+    let maxCombo = 0;
+    let ttsEnabled = true;
+    let lastSpeechText = "";
+
+    /*************************************************************************
+     * 2. RANDOMIZATION & VERTICAL FRACTION FORMATTING HELPERS
+     *************************************************************************/
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function fmtFrac(num, den) {
+      return `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+    }
+
+    function fmtMixed(whole, num, den) {
+      return `<span class="mixed-frac"><span class="mixed-whole">${whole}</span>${fmtFrac(num, den)}</span>`;
+    }
+
+    function speakFrac(num, den) {
+      return `${den}분의 ${num}`;
+    }
+
+    function speakMixed(whole, num, den) {
+      return `${whole}과 ${den}분의 ${num}`;
+    }
+
+    /*************************************************************************
+     * 3. 20-QUESTION GENERATOR (GUARANTEED FRESH ACROSS RESTARTS)
+     *************************************************************************/
+    function generateTwentyQuestions() {
+      const all = [];
+      const usedAct1 = new Set();
+      const usedAct2 = new Set();
+      const nextRunKeys = new Set();
+
+      // --- ACT 1 (Questions 1~10): Improper Fraction -> Mixed Number ---
+      // Denominators 2..9; remainder strictly 1 .. den-1 so exact whole numbers are excluded.
+      for (let i = 0; i < 10; i++) {
+        let den, whole, rem, baseKey, fullKey;
+        let guard = 0;
+        do {
+          guard++;
+          den = i < 4 ? randInt(2, 5) : randInt(2, 9);
+          whole = i < 4 ? randInt(1, 3) : randInt(1, 5);
+          rem = randInt(1, den - 1);
+          baseKey = `${whole}-${rem}/${den}`;
+          fullKey = `A1:${baseKey}`;
+        } while ((usedAct1.has(baseKey) || (previousRunKeys.has(fullKey) && guard < 40)) && guard < 80);
+
+        usedAct1.add(baseKey);
+        nextRunKeys.add(fullKey);
+
+        const impNum = whole * den + rem;
+        const correctHtml = fmtMixed(whole, rem, den);
+        const correctSpeech = speakMixed(whole, rem, den);
+
+        // Generate 3 distinct, plausible distractor mixed fractions
+        // (e.g., swapping quotient & remainder, off-by-one whole number, wrong denominator)
+        const wrongDen = den === 9 ? 8 : den + 1;
+        const distractorPool = [
+          [whole + 1, rem, den],
+          [Math.max(1, whole - 1), rem, den],
+          [whole, rem === 1 ? Math.min(den - 1, 2) : rem - 1, den],
+          [whole, rem === den - 1 ? Math.max(1, rem - 1) : rem + 1, den],
+          [rem, whole < den ? whole : Math.max(1, den - 1), den],
+          [whole, rem, wrongDen],
+          [whole + 1, Math.max(1, den - rem), den]
+        ];
+
+        const distractors = [];
+        for (const [dw, dr, dd] of distractorPool) {
+          if (dw === whole && dr === rem && dd === den) continue;
+          const h = fmtMixed(dw, dr, dd);
+          if (!distractors.some(d => d.html === h)) {
+            distractors.push({ html: h, speech: speakMixed(dw, dr, dd), isCorrect: false });
+          }
+          if (distractors.length === 3) break;
+        }
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          ...distractors
+        ]);
+
+        const item = RPG_ITEMS[i];
+        all.push({
+          act: 1,
+          item,
+          targetHtml: fmtFrac(impNum, den),
+          targetSpeech: speakFrac(impNum, den),
+          instruction: "다음 가분수를 대분수로 바르게 바꾼 것은 무엇인가요?",
+          storySubtitle: `${i + 1}번 숲속 문지기 도전 · 획득 보상: ${item.icon} ${item.name}`,
+          storyLine: `숲속 문지기가 내는 가분수를 대분수로 바꾸면 '${item.name}'을(를) 가방에 넣을 수 있어요!`,
+          hintText: `다시 한 번 계산해 볼까? 분자 ${impNum}을 분모 ${den}으로 나누어 몫(자연수)과 나머지(새 분자)를 구해봐!`,
+          options
+        });
+      }
+
+      // --- ACT 2 (Questions 11~20): Mixed Number -> Improper Fraction ---
+      for (let i = 0; i < 10; i++) {
+        let den, whole, rem, baseKey, fullKey;
+        let guard = 0;
+        do {
+          guard++;
+          den = i < 4 ? randInt(2, 5) : randInt(2, 9);
+          whole = i < 4 ? randInt(1, 3) : randInt(1, 5);
+          rem = randInt(1, den - 1);
+          baseKey = `${whole}-${rem}/${den}`;
+          fullKey = `A2:${baseKey}`;
+        } while ((usedAct2.has(baseKey) || (previousRunKeys.has(fullKey) && guard < 40)) && guard < 80);
+
+        usedAct2.add(baseKey);
+        nextRunKeys.add(fullKey);
+
+        const impNum = whole * den + rem;
+        const correctHtml = fmtFrac(impNum, den);
+        const correctSpeech = speakFrac(impNum, den);
+
+        // Generate 3 distinct, plausible distractor improper fractions
+        const distractorPool = [
+          [whole + rem, den],
+          [impNum + 1, den],
+          [Math.max(den + 1, impNum - 1), den],
+          [whole * den + (den - rem), den],
+          [impNum + den, den],
+          [den, impNum],
+          [impNum + 2, den]
+        ];
+
+        const distractors = [];
+        for (const [dn, dd] of distractorPool) {
+          if (dn === impNum && dd === den) continue;
+          const h = fmtFrac(dn, dd);
+          if (!distractors.some(d => d.html === h)) {
+            distractors.push({ html: h, speech: speakFrac(dn, dd), isCorrect: false });
+          }
+          if (distractors.length === 3) break;
+        }
+
+        const options = shuffleArray([
+          { html: correctHtml, speech: correctSpeech, isCorrect: true },
+          ...distractors
+        ]);
+
+        const item = RPG_ITEMS[i];
+        const villager = VILLAGERS[i];
+        all.push({
+          act: 2,
+          item,
+          villager,
+          targetHtml: fmtMixed(whole, rem, den),
+          targetSpeech: speakMixed(whole, rem, den),
+          instruction: "대분수 친구가 좁은 탈출구를 통과할 수 있도록 가분수로 바꾸세요!",
+          storySubtitle: `${i + 11}번 탈출 작전 · 사용 아이템: ${item.icon} ${item.name}`,
+          storyLine: `${villager.icon} ${villager.name}이(가) 빛의 탈출구 앞에 섰어요! '${item.name}'을(를) 사용해 가분수로 변신시켜 탈출시키세요!`,
+          hintText: `다시 한 번 계산해 볼까? 자연수 ${whole}에 분모 ${den}을 곱한 뒤, 분자 ${rem}을 더해서 새 분자를 만들어 봐!`,
+          options
+        });
+      }
+
+      previousRunKeys = nextRunKeys;
+      return all;
+    }
+
+    /*************************************************************************
+     * 4. SOUND EFFECTS (TONE.JS) & KOREAN TTS VOICE READOUT
+     *************************************************************************/
+    let synth = null;
+    function playSound(type) {
+      try {
+        if (!synth) {
+          synth = new Tone.PolySynth(Tone.Synth).toDestination();
+          synth.volume.value = -8;
+        }
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        const now = Tone.now();
+        if (type === 'correct') {
+          synth.triggerAttackRelease(["C5", "E5", "G5"], "16n", now);
+          synth.triggerAttackRelease("C6", "8n", now + 0.13);
+        } else if (type === 'wrong') {
+          synth.triggerAttackRelease(["E4", "C4"], "8n", now);
+        } else if (type === 'fanfare') {
+          synth.triggerAttackRelease("C5", "16n", now);
+          synth.triggerAttackRelease("E5", "16n", now + 0.1);
+          synth.triggerAttackRelease("G5", "16n", now + 0.2);
+          synth.triggerAttackRelease("C6", "4n", now + 0.32);
+        } else if (type === 'click') {
+          synth.triggerAttackRelease("G5", "32n", now);
+        }
+      } catch (e) {}
+    }
+
+    function speakText(text) {
+      lastSpeechText = text;
+      if (!ttsEnabled || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ko-KR';
+        utter.rate = 0.98;
+        utter.pitch = 1.06;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    function replaySpeech() {
+      playSound('click');
+      if (lastSpeechText) speakText(lastSpeechText);
+    }
+
+    function toggleTTS() {
+      ttsEnabled = !ttsEnabled;
+      const btn = document.getElementById('btn-tts-toggle');
+      const label = document.getElementById('tts-status-text');
+      if (ttsEnabled) {
+        label.textContent = "🔊 읽어주기 ON";
+        btn.className = "bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-emerald-950 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold transition";
+        speakText("문제 읽어주기가 켜졌습니다.");
+      } else {
+        label.textContent = "🔇 읽어주기 OFF";
+        btn.className = "bg-slate-200 hover:bg-slate-300 active:scale-95 text-slate-700 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold transition";
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    /*************************************************************************
+     * 5. RESTART WITH NEW RANDOM PROBLEMS (INLINE CONFIRMATION + RUN COUNTER)
+     *************************************************************************/
+    function updateRunBadge() {
+      document.getElementById('adventure-run-badge').textContent = `🚩 모험 ${adventureRunCount}회차`;
+    }
+
+    function requestNewRandomRestart() {
+      playSound('click');
+      // If on intro screen or still on question 1 unsolved, restart immediately without confirmation
+      if (currentScreen === 'intro' || (currentScreen === 'game' && currentIndex === 0 && !questionSolved)) {
+        startNewAdventureRun(true);
+        return;
+      }
+      const bar = document.getElementById('restart-confirm-bar');
+      bar.style.display = 'block';
+    }
+
+    function cancelNewRandomRestart() {
+      playSound('click');
+      document.getElementById('restart-confirm-bar').style.display = 'none';
+    }
+
+    function confirmNewRandomRestart() {
+      document.getElementById('restart-confirm-bar').style.display = 'none';
+      startNewAdventureRun(true);
+    }
+
+    function startNewAdventureRun(incrementRun) {
+      playSound('click');
+      document.getElementById('restart-confirm-bar').style.display = 'none';
+      if (incrementRun) {
+        adventureRunCount++;
+      }
+      updateRunBadge();
+
+      questions = generateTwentyQuestions();
+      currentIndex = 0;
+      firstTryScore = 0;
+      totalScore = 0;
+      currentCombo = 0;
+      maxCombo = 0;
+      questionSolved = false;
+      hadMistakeOnCurrent = false;
+
+      renderCurrentQuestion();
+      showOnlyScreen('screen-game');
+    }
+
+    /*************************************************************************
+     * 6. SCREEN MANAGEMENT & GAMEPLAY RENDERING
+     *************************************************************************/
+    function showOnlyScreen(screenId) {
+      currentScreen = screenId.replace('screen-', '');
+      ['screen-intro', 'screen-game', 'screen-transition', 'screen-victory'].forEach(id => {
+        const el = document.getElementById(id);
+        if (id === screenId) {
+          el.classList.remove('hidden');
+          el.style.display = 'block';
+        } else {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function returnToIntro() {
+      playSound('click');
+      document.getElementById('restart-confirm-bar').style.display = 'none';
+      showOnlyScreen('screen-intro');
+    }
+
+    function startActTwo() {
+      playSound('click');
+      currentIndex = 10; // Question 11 (index 10)
+      renderCurrentQuestion();
+      showOnlyScreen('screen-game');
+    }
+
+    function renderTrackerBar() {
+      const slotsWrap = document.getElementById('tracker-slots');
+      const titleEl = document.getElementById('tracker-title');
+      const countEl = document.getElementById('tracker-count');
+
+      if (currentIndex < 10) {
+        // ACT 1: 10-slot Warrior Inventory Bag
+        const earnedCount = currentIndex + (questionSolved ? 1 : 0);
+        titleEl.textContent = "🎒 전사의 아이템 가방 (가분수를 대분수로 바꿔 아이템을 모으세요!)";
+        countEl.textContent = `${earnedCount} / 10개 획득`;
+
+        slotsWrap.innerHTML = RPG_ITEMS.map((item, idx) => {
+          const unlocked = idx < earnedCount;
+          const isCurrent = idx === currentIndex && !questionSolved;
+          return `
+            <div title="${item.name}" class="rounded-xl p-1.5 text-center border-2 transition ${
+              unlocked
+                ? "bg-amber-100 border-amber-400 shadow-sm"
+                : isCurrent
+                  ? "bg-white border-emerald-400 ring-2 ring-emerald-200"
+                  : "bg-slate-100 border-slate-200 opacity-45"
+            }">
+              <div class="text-lg sm:text-xl leading-none">${unlocked ? item.icon : (isCurrent ? "❓" : "🔒")}</div>
+              <div class="text-[10px] font-bold truncate mt-1 text-slate-700">${unlocked ? item.name : `${idx + 1}번`}</div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // ACT 2: 10-Villager Village Escape Tracker
+        const act2Index = currentIndex - 10;
+        const rescuedCount = act2Index + (questionSolved ? 1 : 0);
+        titleEl.textContent = "🚪 빛의 탈출구 구출 현황 (대분수 친구를 가분수로 변신시켜 탈출시키세요!)";
+        countEl.textContent = `${rescuedCount} / 10명 탈출`;
+
+        slotsWrap.innerHTML = VILLAGERS.map((v, idx) => {
+          const escaped = idx < rescuedCount;
+          const isCurrent = idx === act2Index && !questionSolved;
+          return `
+            <div title="${v.name}" class="rounded-xl p-1.5 text-center border-2 transition ${
+              escaped
+                ? "bg-indigo-100 border-indigo-400 shadow-sm"
+                : isCurrent
+                  ? "bg-white border-amber-400 ring-2 ring-amber-200"
+                  : "bg-slate-100 border-slate-200 opacity-45"
+            }">
+              <div class="text-lg sm:text-xl leading-none">${escaped ? "✨" : v.icon}</div>
+              <div class="text-[10px] font-bold truncate mt-1 text-slate-700">${escaped ? "탈출성공" : v.name.replace(" 친구", "")}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderCurrentQuestion() {
+      questionSolved = false;
+      hadMistakeOnCurrent = false;
+
+      const q = questions[currentIndex];
+      const actPill = document.getElementById('act-pill');
+      const actRulePill = document.getElementById('act-rule-pill');
+      const statusPanel = document.getElementById('game-status-panel');
+      const problemCard = document.getElementById('problem-card');
+      const storyBox = document.getElementById('story-context-box');
+
+      if (q.act === 1) {
+        actPill.textContent = "🌲 1막: 아이템 수집의 숲";
+        actPill.className = "bg-emerald-600 text-white font-jua text-base sm:text-lg px-3.5 py-1 rounded-full";
+        actRulePill.textContent = "가분수 ➔ 대분수";
+        actRulePill.className = "text-xs sm:text-sm font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full";
+        statusPanel.className = "bg-white rounded-3xl p-4 sm:p-5 shadow-md border-2 border-emerald-300 mb-4";
+        problemCard.className = "bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-4 border-emerald-200";
+        storyBox.className = "bg-emerald-50/90 border-2 border-emerald-200 rounded-2xl p-3.5 sm:p-4 mb-5 flex items-center gap-3";
+      } else {
+        actPill.textContent = "🚪 2막: 대분수 마을 탈출 작전";
+        actPill.className = "bg-indigo-600 text-white font-jua text-base sm:text-lg px-3.5 py-1 rounded-full";
+        actRulePill.textContent = "대분수 ➔ 가분수";
+        actRulePill.className = "text-xs sm:text-sm font-extrabold text-indigo-800 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full";
+        statusPanel.className = "bg-white rounded-3xl p-4 sm:p-5 shadow-md border-2 border-indigo-300 mb-4";
+        problemCard.className = "bg-white rounded-3xl p-5 sm:p-8 shadow-xl border-4 border-indigo-200";
+        storyBox.className = "bg-indigo-50/90 border-2 border-indigo-200 rounded-2xl p-3.5 sm:p-4 mb-5 flex items-center gap-3";
+      }
+
+      const comboBadge = document.getElementById('combo-badge');
+      if (currentCombo >= 2) {
+        comboBadge.textContent = `🔥 연속 정답: ${currentCombo}개`;
+        comboBadge.classList.remove('hidden');
+      } else {
+        comboBadge.classList.add('hidden');
+      }
+
+      document.getElementById('overall-progress-label').textContent = `전체 진행: ${currentIndex + 1} / 20문제`;
+      document.getElementById('story-icon').textContent = q.act === 1 ? q.item.icon : q.villager.icon;
+      document.getElementById('story-subtitle').textContent = q.storySubtitle;
+      document.getElementById('story-line').textContent = q.storyLine;
+      document.getElementById('question-instruction').textContent = q.instruction;
+      document.getElementById('target-fraction-display').innerHTML = q.targetHtml;
+
+      // Reset feedback & next button
+      const fbBox = document.getElementById('feedback-box');
+      fbBox.style.display = 'none';
+
+      const nextWrap = document.getElementById('next-btn-container');
+      nextWrap.style.display = 'none';
+
+      renderTrackerBar();
+
+      // Render 4 big, clean option buttons
+      const badgeStyles = [
+        "bg-amber-500 text-white",
+        "bg-sky-500 text-white",
+        "bg-emerald-500 text-white",
+        "bg-purple-500 text-white"
+      ];
+
+      const optionsGrid = document.getElementById('options-grid');
+      optionsGrid.innerHTML = q.options.map((opt, idx) => `
+        <button type="button" id="opt-btn-${idx}" onclick="handleSelectOption(${idx})"
+          class="bg-white hover:bg-amber-50 active:scale-98 border-3 border-slate-200 hover:border-amber-400 rounded-3xl p-4 sm:p-5 shadow-sm flex items-center gap-4 min-h-[86px] transition">
+          <span class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl ${badgeStyles[idx]} font-jua text-xl sm:text-2xl flex items-center justify-center shrink-0 shadow-sm">
+            ${idx + 1}번
+          </span>
+          <div class="flex-1 text-center text-2xl sm:text-3xl text-slate-900">
+            ${opt.html}
+          </div>
+        </button>
+      `).join('');
+
+      const spokenPrompt = q.act === 1
+        ? `${currentIndex + 1}번 문제. 가분수 ${q.targetSpeech}을 대분수로 바꾸면 얼마일까요?`
+        : `${currentIndex + 1}번 문제. 대분수 ${q.targetSpeech}을 가분수로 바꾸면 얼마일까요?`;
+      speakText(spokenPrompt);
+    }
+
+    function handleSelectOption(optIdx) {
+      if (questionSolved) return;
+
+      const q = questions[currentIndex];
+      const chosen = q.options[optIdx];
+      const btn = document.getElementById(`opt-btn-${optIdx}`);
+      const fbBox = document.getElementById('feedback-box');
+      const fbTitle = document.getElementById('feedback-title');
+      const fbDetail = document.getElementById('feedback-detail');
+
+      if (chosen.isCorrect) {
+        questionSolved = true;
+        if (!hadMistakeOnCurrent) {
+          firstTryScore++;
+          totalScore += 5;
+          currentCombo++;
+          if (currentCombo > maxCombo) maxCombo = currentCombo;
+        } else {
+          totalScore += 3;
+          currentCombo = 0;
+        }
+        playSound('correct');
+
+        btn.className = "bg-emerald-100 border-4 border-emerald-500 rounded-3xl p-4 sm:p-5 shadow-md flex items-center gap-4 min-h-[86px]";
+
+        const comboBadge = document.getElementById('combo-badge');
+        if (currentCombo >= 2) {
+          comboBadge.textContent = `🔥 연속 정답: ${currentCombo}개`;
+          comboBadge.classList.remove('hidden');
+        } else {
+          comboBadge.classList.add('hidden');
+        }
+
+        let successTitle = "";
+        let successDetail = "";
+        let spokenResult = "";
+
+        if (q.act === 1) {
+          successTitle = `정답! ${q.item.icon} '${q.item.name}' 획득!`;
+          successDetail = `${q.targetSpeech} = ${chosen.speech} ! 숲속 문지기를 물리치고 아이템을 가방에 넣었어요!`;
+          spokenResult = `정답입니다! ${q.item.name}을 획득했습니다!`;
+        } else {
+          successTitle = `✨ 빛의 탈출구 통과 성공! ${q.villager.icon} ${q.villager.name} 구출 완료!`;
+          successDetail = `${q.item.icon} ${q.item.name}의 힘으로 ${q.targetSpeech}이(가) 날씬한 가분수 ${chosen.speech}(으)로 변신해 좁은 탈출구를 무사히 빠져나갔어요!`;
+          spokenResult = `탈출 성공! ${q.villager.name}이 가분수 ${chosen.speech}으로 변신해 빛의 탈출구를 빠져나갔습니다!`;
+        }
+
+        fbBox.className = "rounded-2xl p-4 mb-5 border-2 border-emerald-400 bg-emerald-50 text-emerald-950 text-center animate-pop";
+        fbTitle.textContent = successTitle;
+        fbDetail.textContent = successDetail;
+        fbBox.style.display = 'block';
+
+        renderTrackerBar();
+
+        const nextWrap = document.getElementById('next-btn-container');
+        const nextLabel = document.getElementById('btn-next-label');
+        if (currentIndex === 9) {
+          nextLabel.textContent = "🏰 아이템 10개 완성! 대분수 마을로 이동하기!";
+        } else if (currentIndex === 19) {
+          nextLabel.textContent = "🏆 구출 작전 완료 결과 보기!";
+        } else {
+          nextLabel.textContent = "👉 다음 문제로 계속하기!";
+        }
+        nextWrap.style.display = 'block';
+
+        speakText(spokenResult);
+      } else {
+        hadMistakeOnCurrent = true;
+        currentCombo = 0;
+        document.getElementById('combo-badge').classList.add('hidden');
+        playSound('wrong');
+
+        btn.classList.remove('animate-shake');
+        void btn.offsetWidth;
+        btn.classList.add('animate-shake', 'bg-rose-50', 'border-rose-300', 'opacity-65');
+        btn.disabled = true;
+
+        fbBox.className = "rounded-2xl p-4 mb-5 border-2 border-amber-400 bg-amber-50 text-amber-950 text-center animate-pop";
+        fbTitle.textContent = "앗, 아쉽다! 한 번 더 계산해 볼까? 💡";
+        fbDetail.textContent = q.hintText;
+        fbBox.style.display = 'block';
+
+        speakText(q.hintText);
+      }
+    }
+
+    function goToNextQuestion() {
+      playSound('click');
+      if (currentIndex === 9) {
+        // Finished Question 10 (Act 1 complete) -> Show Mid-Story Intermission Screen
+        playSound('fanfare');
+        const showcase = document.getElementById('transition-items-showcase');
+        showcase.innerHTML = RPG_ITEMS.map((it, idx) => `
+          <span class="inline-flex items-center gap-1 bg-amber-100 border border-amber-300 text-amber-950 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold">
+            <span>${idx + 1}.${it.icon}</span>
+            <span>${it.name}</span>
+          </span>
+        `).join('');
+        showOnlyScreen('screen-transition');
+        speakText("대분수 마을에 도착했어! 그런데 마을 탈출구가 너무 좁아서 대분수 모습으로는 빠져나올 수가 없대! 모은 아이템을 하나씩 사용해서 마을 친구들을 가분수로 변신시켜 탈출시키자!");
+        return;
+      }
+
+      if (currentIndex < 19) {
+        currentIndex++;
+        renderCurrentQuestion();
+      } else {
+        // Finished Question 20 -> Victory Screen
+        playSound('fanfare');
+        const accuracyPct = Math.round((firstTryScore / 20) * 100);
+        document.getElementById('victory-total-score').textContent = `${totalScore}점 / 100점`;
+        document.getElementById('victory-first-try').textContent = `${firstTryScore} / 20회 (${accuracyPct}%)`;
+        document.getElementById('victory-max-combo').textContent = `${maxCombo}연속`;
+        showOnlyScreen('screen-victory');
+        speakText("축하합니다! 대분수 마을 친구 10명을 모두 가분수로 변신시켜 무사히 구출했습니다! 정말 훌륭한 분수 전사예요!");
+      }
+    }
+
+    /*************************************************************************
+     * 7. INITIALIZATION ON WINDOW LOAD
+     *************************************************************************/
+    window.onload = function () {
+      updateRunBadge();
+      questions = generateTwentyQuestions();
+      showOnlyScreen('screen-intro');
+    };
+  </script>
+</body>
+</html>
