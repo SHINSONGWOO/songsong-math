@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🚀💎 우주 간식 & 보석 공장 나눗셈 탐험대 (3·4학년)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Korean-friendly Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-deep: #0b1026;
+      --bg-card: #161f42;
+      --bg-panel: #1f2b59;
+      --accent-gold: #ffd166;
+      --accent-cyan: #4cc9f0;
+      --accent-mint: #06d6a0;
+      --accent-pink: #ff6b6b;
+      --accent-purple: #a78bfa;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: radial-gradient(circle at top, #1e2959 0%, var(--bg-deep) 78%);
+      color: #f8fafc;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-jua {
+      font-family: 'Jua', sans-serif;
+    }
+
+    /* Guarantee 100% reliable PC click & mobile/tablet touch on all buttons */
+    button {
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    button * {
+      pointer-events: none;
+    }
+    button:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.96) translateY(8px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes shakeGentle {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+    }
+    .animate-shake {
+      animation: shakeGentle 0.36s ease-in-out;
+    }
+  </style>
+</head>
+<body class="pb-14">
+
+  <!-- Sticky Top Navigation Header -->
+  <header class="sticky top-0 z-30 bg-[#101736]/95 backdrop-blur-md border-b border-white/15 shadow-lg">
+    <div class="max-w-4xl mx-auto px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- Left: Game Hub Title + Run Counter -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" onclick="goHub()" class="bg-[#1f2b59] hover:bg-[#2a3975] border border-white/20 text-[#ffd166] px-3.5 py-2 rounded-2xl font-jua text-lg sm:text-xl flex items-center gap-1.5">
+          <span>🚀💎</span>
+          <span>나눗셈 탐험대</span>
+        </button>
+        <span id="run-badge" class="bg-sky-500/20 text-sky-300 border border-sky-400/50 px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold">
+          도전 1회차
+        </span>
+      </div>
+
+      <!-- Right: TTS Toggle, Replay Speech, Game Select, and Lobby (index.html) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <button type="button" id="btn-tts" onclick="toggleTTS()" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400 text-emerald-300 px-3 py-2 rounded-2xl text-xs sm:text-sm font-extrabold">
+          <span id="tts-label">🔊 읽어주기 ON</span>
+        </button>
+        <button type="button" onclick="replaySpeech()" class="bg-[#1f2b59] hover:bg-[#2a3975] border border-white/15 text-slate-200 px-3 py-2 rounded-2xl text-xs sm:text-sm font-bold">
+          <span>🔁 다시 듣기</span>
+        </button>
+        <button type="button" id="btn-back-hub" onclick="goHub()" style="display: none;" class="bg-sky-400 hover:bg-sky-300 text-slate-950 px-3 py-2 rounded-2xl text-xs sm:text-sm font-black shadow-sm">
+          <span>🎮 단계 선택</span>
+        </button>
+        <button type="button" onclick="goLobby()" class="bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-black shadow-sm flex items-center gap-1">
+          <span>🏠 로비로 이동</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-3 sm:px-5 pt-5">
+
+    <!-- =====================================================================
+         SCREEN 0: MAIN INTERACTIVE GAME HUB (BOTH GAMES SELECTABLE IMMEDIATELY)
+    ====================================================================== -->
+    <section id="screen-hub" class="animate-pop">
+      <div class="bg-[#161f42] border-2 border-white/15 rounded-3xl p-5 sm:p-7 shadow-2xl mb-5 text-center">
+        <div class="inline-flex items-center gap-2 bg-amber-400/15 border border-amber-400/40 text-amber-300 px-4 py-1 rounded-full text-xs sm:text-sm font-extrabold mb-3">
+          <span>👆 연필·키보드 없이 100% 큰 버튼 터치로 푸는 3·4학년 나눗셈</span>
+        </div>
+        <h1 class="font-jua text-3xl sm:text-4xl text-white mb-2">
+          오늘 어떤 나눗셈 임무에 도전할까요?
+        </h1>
+        <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto">
+          글씨 쓰기 귀찮아도 괜찮아요! 원하는 학년·단계 버튼을 누르면 <strong>매번 새로운 랜덤 10문제</strong>가 바로 시작됩니다.
+        </p>
+      </div>
+
+      <!-- TWO COMPLETE GAMES SIDE-BY-SIDE ON MAIN HUB -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        <!-- GAME 1 CARD: 우주 간식 배달부 -->
+        <div class="bg-[#161f42] border-2 border-sky-400/40 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="bg-sky-500/20 text-sky-300 border border-sky-400/40 px-3 py-1 rounded-full text-xs font-extrabold">
+                3학년 · 나머지가 없는 나눗셈
+              </span>
+              <span class="text-3xl">🚀👽</span>
+            </div>
+            <h2 class="font-jua text-2xl sm:text-3xl text-[#ffd166] mb-1.5">
+              게임 1. 우주 간식 배달부
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-4">
+              외계인 친구들에게 간식을 똑같이 나눠주세요! <strong>⚡ 구구단 광선총 힌트</strong>(<code class="text-amber-300 font-bold">4 × [?] = 24</code>)를 보고 터치 한 번으로 배달합니다.
+            </p>
+          </div>
+
+          <div class="space-y-2.5">
+            <button type="button" onclick="startGame1('basic')" class="w-full bg-[#1f2b59] hover:bg-[#283770] border-2 border-sky-400/35 hover:border-sky-300 rounded-2xl p-3.5 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-amber-300">1단계 · 기초 탄탄</div>
+                <div class="font-jua text-lg text-white">🌟 별사탕 행성 (구구단 나눗셈)</div>
+                <div class="text-xs text-slate-300">예: 24 ÷ 4, 35 ÷ 5 (10문제)</div>
+              </div>
+              <span class="bg-sky-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">출발 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame1('tens')" class="w-full bg-[#1f2b59] hover:bg-[#283770] border-2 border-sky-400/35 hover:border-sky-300 rounded-2xl p-3.5 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-amber-300">2단계 · 실력 쑥쑥</div>
+                <div class="font-jua text-lg text-white">🍩 도넛 행성 (몇십 ÷ 몇)</div>
+                <div class="text-xs text-slate-300">예: 60 ÷ 3, 80 ÷ 4 (10문제)</div>
+              </div>
+              <span class="bg-sky-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">출발 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame1('twodigit')" class="w-full bg-[#1f2b59] hover:bg-[#283770] border-2 border-sky-400/35 hover:border-sky-300 rounded-2xl p-3.5 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-amber-300">3단계 · 배달 마스터</div>
+                <div class="font-jua text-lg text-white">🍕 우주피자 행성 (두 자리 수 ÷ 한 자리 수)</div>
+                <div class="text-xs text-slate-300">예: 48 ÷ 4, 72 ÷ 3 (10문제)</div>
+              </div>
+              <span class="bg-sky-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">출발 ▶</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- GAME 2 CARD: 보석 상자 포장 공장 (5 Lines including Guided 4th-Grade Steps) -->
+        <div class="bg-[#161f42] border-2 border-purple-400/40 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="bg-purple-500/20 text-purple-300 border border-purple-400/40 px-3 py-1 rounded-full text-xs font-extrabold">
+                3·4학년 · 나머지가 있는 나눗셈 &amp; 세로셈 원리
+              </span>
+              <span class="text-3xl">💎🏭</span>
+            </div>
+            <h2 class="font-jua text-2xl sm:text-3xl text-[#ffd166] mb-1.5">
+              게임 2. 보석 상자 포장 공장
+            </h2>
+            <p class="text-slate-300 text-sm leading-relaxed mb-4">
+              3학년은 <strong>몫·나머지 동시 선택</strong>으로, 4학년 4·5라인은 <strong>몫 고르기 ➔ 곱셈 확인 ➔ 뺄셈 나머지</strong>의 단계별 터치 공정으로 세로셈 원리를 익힙니다!
+            </p>
+          </div>
+
+          <div class="space-y-2.5">
+            <button type="button" onclick="startGame2('grade3_basic')" class="w-full bg-[#1f2b59] hover:bg-[#2b265c] border-2 border-purple-400/35 hover:border-purple-300 rounded-2xl p-3 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-emerald-300">1라인 · 3학년 기초</div>
+                <div class="font-jua text-lg text-white">💎 루비 라인 (구구단 나머지)</div>
+                <div class="text-xs text-slate-300">예: 27 ÷ 4 = 6 … 3 (10문제)</div>
+              </div>
+              <span class="bg-purple-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">가동 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame2('grade3_adv')" class="w-full bg-[#1f2b59] hover:bg-[#2b265c] border-2 border-purple-400/35 hover:border-purple-300 rounded-2xl p-3 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-emerald-300">2라인 · 3학년 심화</div>
+                <div class="font-jua text-lg text-white">💠 사파이어 라인 (두 자리 수 ÷ 한 자리 수)</div>
+                <div class="text-xs text-slate-300">예: 53 ÷ 4 = 13 … 1 (10문제)</div>
+              </div>
+              <span class="bg-purple-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">가동 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame2('grade4_div')" class="w-full bg-[#1f2b59] hover:bg-[#2b265c] border-2 border-emerald-400/40 hover:border-emerald-300 rounded-2xl p-3 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-amber-300">3라인 · 4학년 기초</div>
+                <div class="font-jua text-lg text-white">💚 에메랄드 라인 (세 자리 수 ÷ 몇십)</div>
+                <div class="text-xs text-slate-300">예: 145 ÷ 20 = 7 … 5 (10문제)</div>
+              </div>
+              <span class="bg-emerald-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">가동 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame2('grade4_2digit_q1')" class="w-full bg-[#1f2b59] hover:bg-[#2b265c] border-2 border-amber-400/50 hover:border-amber-300 rounded-2xl p-3 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-amber-300">4라인 · 4학년 핵심 (3단계 공정: 몫➔곱셈➔뺄셈)</div>
+                <div class="font-jua text-lg text-white">🔮 자수정 라인 (세 자리 수 ÷ 몇십몇 · 몫이 1자리)</div>
+                <div class="text-xs text-slate-300">예: 150 ÷ 23 → 23×6=138 → 나머지 12 (10문제)</div>
+              </div>
+              <span class="bg-amber-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">가동 ▶</span>
+            </button>
+
+            <button type="button" onclick="startGame2('grade4_2digit_q2')" class="w-full bg-[#1f2b59] hover:bg-[#2b265c] border-2 border-rose-400/50 hover:border-rose-300 rounded-2xl p-3 text-left flex items-center justify-between">
+              <div>
+                <div class="text-xs font-extrabold text-rose-300">5라인 · 4학년 마스터 (십의 자리 ➔ 일의 자리 분할)</div>
+                <div class="font-jua text-lg text-white">👑 다이아 라인 (세 자리 수 ÷ 몇십몇 · 몫이 2자리)</div>
+                <div class="text-xs text-slate-300">예: 345 ÷ 15 → 큰 상자 20개 + 작은 상자 3개 (10문제)</div>
+              </div>
+              <span class="bg-rose-400 text-slate-950 font-black text-xs px-3 py-2 rounded-xl shrink-0">가동 ▶</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SCREEN 1: GAME 1 — 🚀 우주 간식 배달부
+    ====================================================================== -->
+    <section id="screen-game1" style="display: none;" class="animate-pop">
+      <div class="bg-[#161f42] border border-white/15 rounded-2xl p-3.5 mb-4">
+        <div class="flex items-center justify-between text-sm font-extrabold mb-2">
+          <span id="g1-stage-label" class="text-sky-300">🌟 1단계: 별사탕 행성</span>
+          <span id="g1-progress-text" class="text-amber-300">1 / 10 문제 · ⭐ 0개</span>
+        </div>
+        <div class="w-full h-3 bg-[#0b1026] rounded-full overflow-hidden">
+          <div id="g1-progress-fill" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="bg-[#161f42] border-2 border-sky-400/35 rounded-3xl p-5 sm:p-6 shadow-2xl">
+        <div id="g1-story-banner" class="bg-sky-500/15 border border-sky-400/40 rounded-2xl p-4 text-center text-base sm:text-lg font-bold mb-4"></div>
+
+        <div class="bg-[#0e1430] border border-dashed border-white/25 rounded-2xl p-4 mb-4 text-center">
+          <div id="g1-snack-supply" class="text-sm sm:text-base font-extrabold text-[#ffd166] mb-3"></div>
+          <div id="g1-aliens-row" class="flex flex-wrap justify-center gap-2.5"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <div class="bg-[#1f2b59] border-2 border-white/15 rounded-2xl p-4 text-center">
+            <div class="text-xs font-extrabold text-slate-300 mb-1">나눗셈 식</div>
+            <div id="g1-div-eq" class="text-2xl sm:text-3xl font-black tracking-wide"></div>
+          </div>
+          <div class="bg-gradient-to-br from-[#28336e] to-[#1d2654] border-2 border-amber-400/60 rounded-2xl p-4 text-center">
+            <div class="text-xs font-extrabold text-amber-300 mb-1">⚡ 구구단 광선총 힌트</div>
+            <div id="g1-mul-eq" class="text-2xl sm:text-3xl font-black tracking-wide"></div>
+          </div>
+        </div>
+
+        <div id="g1-options-grid" class="grid grid-cols-2 gap-3 sm:gap-4"></div>
+
+        <div id="g1-feedback" style="display: none;" class="mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2"></div>
+
+        <button type="button" id="g1-next-btn" onclick="nextGame1Question()" style="display: none;" class="mt-4 w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-jua text-2xl shadow-lg">
+          <span>다음 배달 출발! 🚀</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SCREEN 2: GAME 2 — 💎 보석 상자 포장 공장
+         (Supports Classic 2-Pad for Lines 1~3 AND Guided Step Flows for Lines 4~5)
+    ====================================================================== -->
+    <section id="screen-game2" style="display: none;" class="animate-pop">
+      <div class="bg-[#161f42] border border-white/15 rounded-2xl p-3.5 mb-4">
+        <div class="flex items-center justify-between text-sm font-extrabold mb-2">
+          <span id="g2-stage-label" class="text-purple-300">💎 1라인: 루비 라인</span>
+          <span id="g2-progress-text" class="text-amber-300">1 / 10 문제 · ⭐ 0개</span>
+        </div>
+        <div class="w-full h-3 bg-[#0b1026] rounded-full overflow-hidden">
+          <div id="g2-progress-fill" class="h-full bg-gradient-to-r from-purple-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="bg-[#161f42] border-2 border-purple-400/35 rounded-3xl p-5 sm:p-6 shadow-2xl">
+        <div id="g2-banner" class="bg-gradient-to-r from-purple-500/20 to-sky-500/20 border border-purple-400/40 rounded-2xl p-4 text-center text-base sm:text-lg font-bold mb-3"></div>
+
+        <!-- 4th Grade Rounding Estimation Pill (Lines 4 & 5) -->
+        <div id="g2-estimate-wrap" style="display: none;" class="mb-4 text-center">
+          <span id="g2-estimate-pill" class="inline-flex items-center gap-1.5 bg-amber-400/15 border border-amber-400/50 text-amber-200 px-4 py-1.5 rounded-full text-xs sm:text-sm font-extrabold">
+            🔮 어림 힌트
+          </span>
+        </div>
+
+        <!-- ===============================================================
+             SUB-VIEW 2A: CLASSIC 2-PAD MODE (LINES 1, 2, 3)
+        ================================================================ -->
+        <div id="g2-classic-area">
+          <!-- Live Division & Verification Equation Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div class="bg-[#0e1430] border-2 border-white/15 rounded-2xl p-3.5 text-center">
+              <div class="text-xs font-extrabold text-slate-300 mb-1">나눗셈 식</div>
+              <div id="g2-div-display" class="text-xl sm:text-2xl font-black"></div>
+            </div>
+            <div class="bg-[#0e1430] border-2 border-emerald-400/40 rounded-2xl p-3.5 text-center">
+              <div class="text-xs font-extrabold text-emerald-300 mb-1">🔍 검산 확인 (나누는 수 × 몫 + 나머지)</div>
+              <div id="g2-check-display" class="text-xl sm:text-2xl font-black"></div>
+            </div>
+          </div>
+
+          <!-- Live Box & Tray Visualization -->
+          <div class="bg-[#0e1430] border border-dashed border-white/25 rounded-2xl p-3.5 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="sm:col-span-2 bg-[#1f2b59] rounded-xl p-3 text-center">
+              <div id="g2-box-zone-title" class="text-xs font-extrabold text-sky-300 mb-2">📦 완성된 보석 상자 (몫)</div>
+              <div id="g2-boxes-container" class="flex flex-wrap justify-center gap-1.5 min-h-[42px] items-center text-sm text-slate-300 font-bold">
+                상자 수를 터치하세요
+              </div>
+            </div>
+            <div class="bg-[#1f2b59] rounded-xl p-3 text-center">
+              <div class="text-xs font-extrabold text-amber-300 mb-2">🍽️ 남은 보석 접시 (나머지)</div>
+              <div id="g2-tray-container" class="min-h-[42px] flex items-center justify-center bg-amber-400/10 border border-dashed border-amber-400/60 rounded-lg px-2 py-1 text-sm font-extrabold text-amber-200">
+                남은 개수를 터치하세요
+              </div>
+            </div>
+          </div>
+
+          <!-- Side-by-Side Touch Pads for Quotient & Remainder -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-4">
+            <div class="bg-[#1f2b59] border-2 border-sky-400/45 rounded-2xl p-3.5">
+              <div class="flex items-center justify-between font-extrabold text-sm mb-2.5">
+                <span>1️⃣ 몇 상자 나올까요? (몫)</span>
+                <span id="g2-q-badge" class="bg-sky-500/25 text-sky-300 px-3 py-0.5 rounded-full">미선택</span>
+              </div>
+              <div id="g2-q-buttons" class="grid grid-cols-4 gap-2"></div>
+            </div>
+
+            <div class="bg-[#1f2b59] border-2 border-amber-400/45 rounded-2xl p-3.5">
+              <div class="flex items-center justify-between font-extrabold text-sm mb-2.5">
+                <span>2️⃣ 몇 개 남을까요? (나머지)</span>
+                <span id="g2-r-badge" class="bg-amber-500/25 text-amber-300 px-3 py-0.5 rounded-full">미선택</span>
+              </div>
+              <div id="g2-r-buttons" class="grid grid-cols-4 gap-2"></div>
+            </div>
+          </div>
+
+          <button type="button" id="g2-check-btn" onclick="checkGame2ClassicPacking()" disabled class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 disabled:opacity-40 text-slate-950 font-jua text-2xl shadow-lg">
+            <span>📦 포장 검사하기!</span>
+          </button>
+        </div>
+
+        <!-- ===============================================================
+             SUB-VIEW 2B: GUIDED VERTICAL-DIVISION WORKFLOW (LINES 4 & 5)
+             (Quotient -> Multiplication Product -> Subtraction Remainder)
+        ================================================================ -->
+        <div id="g2-guided-area" style="display: none;">
+          <!-- Step Tracker Pills -->
+          <div id="guided-step-pills" class="flex flex-wrap items-center justify-center gap-2 mb-4"></div>
+
+          <!-- Live Vertical Division Ledger Card -->
+          <div id="guided-ledger" class="bg-[#0e1430] border-2 border-indigo-400/45 rounded-2xl p-4 mb-4"></div>
+
+          <!-- Active Touch Step Prompt & Large Touch Buttons -->
+          <div id="guided-action-box" class="bg-[#1f2b59] border-2 border-sky-400/50 rounded-2xl p-4 sm:p-5">
+            <div id="guided-step-title" class="font-jua text-xl sm:text-2xl text-[#ffd166] text-center mb-1.5"></div>
+            <p id="guided-step-sub" class="text-xs sm:text-sm text-slate-200 text-center font-bold mb-4"></p>
+            <div id="guided-choice-grid" class="grid grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+
+        <!-- Shared Feedback & Next Question Button -->
+        <div id="g2-feedback" style="display: none;" class="mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 leading-relaxed"></div>
+
+        <button type="button" id="g2-next-btn" onclick="nextGame2Question()" style="display: none;" class="mt-3 w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-jua text-2xl shadow-lg">
+          <span>다음 보석 묶음 받기! ⚙️</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SCREEN 3: VICTORY / REPLAY / LOBBY SCREEN (FOR BOTH GAMES)
+    ====================================================================== -->
+    <section id="screen-result" style="display: none;" class="animate-pop">
+      <div class="bg-[#161f42] border-2 border-amber-400 rounded-3xl p-7 sm:p-10 text-center shadow-2xl max-w-2xl mx-auto">
+        <div id="res-emoji" class="text-6xl mb-3">🏆</div>
+        <h2 id="res-title" class="font-jua text-3xl sm:text-4xl text-[#ffd166] mb-2">임무 대성공!</h2>
+        <p id="res-summary" class="text-slate-300 text-base sm:text-lg mb-5">
+          모든 문제를 멋지게 해결했어요!
+        </p>
+
+        <div id="res-score-pill" class="inline-block bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-jua text-2xl px-6 py-2.5 rounded-full mb-7">
+          첫 시도에 맞힌 별: ⭐ 10 / 10
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 flex-wrap">
+          <button type="button" id="res-replay-btn" onclick="replayCurrentGameWithNewRandom()" class="w-full sm:w-auto bg-gradient-to-r from-sky-400 to-emerald-400 hover:from-sky-300 hover:to-emerald-300 text-slate-950 font-jua text-xl px-7 py-4 rounded-2xl shadow-lg">
+            <span>🎲 새로운 숫자로 다시 시작</span>
+          </button>
+          <button type="button" onclick="goHub()" class="w-full sm:w-auto bg-[#1f2b59] hover:bg-[#2a3975] border border-white/20 text-white font-bold text-base px-6 py-4 rounded-2xl">
+            <span>🎮 다른 단계 고르기</span>
+          </button>
+          <button type="button" onclick="goLobby()" class="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-slate-950 font-jua text-xl px-7 py-4 rounded-2xl shadow-lg">
+            <span>🏠 로비로 이동</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /*************************************************************************
+     * 1. SHARED UTILITIES: NAVIGATION (INCLUDING index.html LOBBY), TTS, SOUND
+     *************************************************************************/
+    const TOTAL_QUESTIONS = 10;
+    let totalChallengeCount = 1;
+    let runCounts = { g1: 1, g2: 1 };
+    let activeGame = null; // 'g1' | 'g2'
+    let activeMode = null;
+    let ttsEnabled = true;
+    let lastSpokenText = "";
+
+    function goLobby() {
+      playSound("tap");
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      window.location.href = "index.html";
+    }
+
+    function speak(text) {
+      lastSpokenText = text;
+      if (!ttsEnabled || !("speechSynthesis" in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "ko-KR";
+        utter.rate = 1.02;
+        utter.pitch = 1.05;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    function replaySpeech() {
+      playSound("tap");
+      if (lastSpokenText) speak(lastSpokenText);
+    }
+
+    function toggleTTS() {
+      ttsEnabled = !ttsEnabled;
+      const btn = document.getElementById("btn-tts");
+      const label = document.getElementById("tts-label");
+      if (ttsEnabled) {
+        label.textContent = "🔊 읽어주기 ON";
+        btn.className = "bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400 text-emerald-300 px-3 py-2 rounded-2xl text-xs sm:text-sm font-extrabold";
+        speak("음성 읽어주기가 켜졌습니다.");
+      } else {
+        label.textContent = "🔇 읽어주기 OFF";
+        btn.className = "bg-slate-700/60 hover:bg-slate-700 border border-slate-500 text-slate-300 px-3 py-2 rounded-2xl text-xs sm:text-sm font-extrabold";
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    function playSound(kind) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (kind === "ok") {
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.09);
+          osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.18);
+          gain.gain.setValueAtTime(0.14, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.4);
+        } else if (kind === "tap") {
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(460, ctx.currentTime);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08);
+        } else {
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(195, ctx.currentTime);
+          osc.frequency.setValueAtTime(155, ctx.currentTime + 0.14);
+          gain.gain.setValueAtTime(0.09, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.32);
+        }
+      } catch (e) {}
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function shuffle(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function showScreen(id) {
+      ["screen-hub", "screen-game1", "screen-game2", "screen-result"].forEach(s => {
+        const el = document.getElementById(s);
+        el.style.display = s === id ? "block" : "none";
+      });
+      const backBtn = document.getElementById("btn-back-hub");
+      backBtn.style.display = id === "screen-hub" ? "none" : "inline-flex";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goHub() {
+      playSound("tap");
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      activeGame = null;
+      document.getElementById("run-badge").textContent = `도전 ${totalChallengeCount}회차`;
+      showScreen("screen-hub");
+    }
+
+    /*************************************************************************
+     * 2. GAME 1: 🚀 우주 간식 배달부 (3학년 · 나머지 없는 나눗셈 & 구구단 역산)
+     *************************************************************************/
+    const G1_ALIENS = ["👽", "👾", "🤖", "🐙", "🛸", "🐸", "🦊", "🐻", "🐼"];
+    const G1_SNACKS = [
+      { name: "별사탕", emoji: "🍬" },
+      { name: "우주도넛", emoji: "🍩" },
+      { name: "달빛쿠키", emoji: "🍪" },
+      { name: "은하딸기", emoji: "🍓" },
+      { name: "행성사과", emoji: "🍎" },
+      { name: "우주피자", emoji: "🍕" }
+    ];
+
+    let g1Questions = [];
+    let g1Index = 0;
+    let g1FirstTry = 0;
+    let g1Attempted = false;
+    let g1Solved = false;
+    let g1PrevSignatures = new Set();
+
+    function generateGame1Questions(mode) {
+      const list = [];
+      const used = new Set();
+      let guard = 0;
+
+      while (list.length < TOTAL_QUESTIONS && guard < 700) {
+        guard++;
+        let divisor, quotient, dividend;
+
+        if (mode === "basic") {
+          divisor = randInt(2, 9);
+          quotient = randInt(2, 9);
+          dividend = divisor * quotient;
+        } else if (mode === "tens") {
+          divisor = randInt(2, 5);
+          const tens = randInt(1, 4) * divisor;
+          if (tens > 9) continue;
+          dividend = tens * 10;
+          quotient = dividend / divisor;
+        } else {
+          divisor = randInt(2, 6);
+          quotient = randInt(11, Math.floor(96 / divisor));
+          dividend = divisor * quotient;
+        }
+
+        const sig = `${dividend}/${divisor}`;
+        if (used.has(sig)) continue;
+        if (g1PrevSignatures.has(sig) && guard < 350) continue;
+        used.add(sig);
+
+        const wrongSet = new Set();
+        const offsets = [-3, -2, -1, 1, 2, 3, 4, 5, 10, -10];
+        for (const off of shuffle(offsets)) {
+          const cand = quotient + off;
+          if (cand >= 2 && cand !== quotient) wrongSet.add(cand);
+          if (wrongSet.size === 3) break;
+        }
+        while (wrongSet.size < 3) {
+          const fallback = randInt(2, Math.max(12, quotient + 6));
+          if (fallback !== quotient) wrongSet.add(fallback);
+        }
+
+        list.push({
+          dividend,
+          divisor,
+          quotient,
+          snack: G1_SNACKS[randInt(0, G1_SNACKS.length - 1)],
+          alien: G1_ALIENS[randInt(0, G1_ALIENS.length - 1)],
+          options: shuffle([quotient, ...Array.from(wrongSet)])
+        });
+      }
+
+      g1PrevSignatures = used;
+      return list;
+    }
+
+    function startGame1(mode) {
+      playSound("tap");
+      activeGame = "g1";
+      activeMode = mode;
+      g1Questions = generateGame1Questions(mode);
+      g1Index = 0;
+      g1FirstTry = 0;
+
+      document.getElementById("run-badge").textContent = `도전 ${totalChallengeCount}회차 · 배달 ${runCounts.g1}회`;
+      const titles = {
+        basic: "🌟 1단계: 별사탕 행성",
+        tens: "🍩 2단계: 도넛 행성",
+        twodigit: "🍕 3단계: 우주피자 행성"
+      };
+      document.getElementById("g1-stage-label").textContent = titles[mode];
+
+      showScreen("screen-game1");
+      renderGame1Question();
+    }
+
+    function renderGame1Question() {
+      const q = g1Questions[g1Index];
+      g1Attempted = false;
+      g1Solved = false;
+
+      document.getElementById("g1-progress-fill").style.width = `${(g1Index / TOTAL_QUESTIONS) * 100}%`;
+      document.getElementById("g1-progress-text").textContent = `${g1Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g1FirstTry}개`;
+
+      document.getElementById("g1-story-banner").innerHTML =
+        `외계인 친구 <strong class="text-[#ffd166]">${q.divisor}명</strong>에게 ${q.snack.emoji} ${q.snack.name} <strong class="text-[#ffd166]">${q.dividend}개</strong>를 똑같이 나눠주세요!`;
+      document.getElementById("g1-snack-supply").textContent =
+        `보유 간식: ${q.snack.emoji} ${q.snack.name} ${q.dividend}개`;
+
+      const aliensRow = document.getElementById("g1-aliens-row");
+      aliensRow.innerHTML = Array.from({ length: q.divisor }, (_, i) => `
+        <div id="g1-pod-${i}" class="bg-[#1f2b59] border-2 border-white/15 rounded-2xl px-3 py-2.5 min-w-[78px] transition">
+          <div class="text-2xl sm:text-3xl">${q.alien}</div>
+          <div id="g1-plate-${i}" class="mt-1.5 text-xs sm:text-sm font-extrabold text-[#ffd166] bg-black/30 rounded-lg px-2 py-1">
+            ? 개
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("g1-div-eq").innerHTML =
+        `${q.dividend} ÷ ${q.divisor} = <span id="g1-div-blank" class="inline-block min-w-[48px] px-2 rounded-xl bg-amber-400/20 border-2 border-dashed border-amber-300 text-amber-300">?</span>`;
+      document.getElementById("g1-mul-eq").innerHTML =
+        `${q.divisor} × <span id="g1-mul-blank" class="inline-block min-w-[48px] px-2 rounded-xl bg-amber-400/20 border-2 border-dashed border-amber-300 text-amber-300">?</span> = ${q.dividend}`;
+
+      const grid = document.getElementById("g1-options-grid");
+      grid.innerHTML = q.options.map((opt, idx) => `
+        <button type="button" id="g1-opt-${idx}" onclick="selectGame1Option(${opt}, ${idx})"
+          class="bg-gradient-to-b from-[#2b3a78] to-[#202c5e] hover:from-[#34468f] hover:to-[#273670] border-3 border-white/20 hover:border-sky-300 rounded-2xl py-5 px-3 text-white font-black text-2xl sm:text-3xl shadow-md">
+          <span>${opt}개씩</span>
+        </button>
+      `).join("");
+
+      const fb = document.getElementById("g1-feedback");
+      fb.style.display = "none";
+      document.getElementById("g1-next-btn").style.display = "none";
+
+      speak(`외계인 친구 ${q.divisor}명에게 ${q.snack.name} ${q.dividend}개를 똑같이 나눠주면 한 명당 몇 개씩 받을까요?`);
+    }
+
+    function selectGame1Option(selected, idx) {
+      if (g1Solved) return;
+      const q = g1Questions[g1Index];
+      const btn = document.getElementById(`g1-opt-${idx}`);
+      const fb = document.getElementById("g1-feedback");
+
+      if (selected === q.quotient) {
+        g1Solved = true;
+        playSound("ok");
+        if (!g1Attempted) g1FirstTry++;
+
+        btn.className = "bg-gradient-to-b from-emerald-400 to-emerald-600 border-3 border-emerald-200 rounded-2xl py-5 px-3 text-slate-950 font-black text-2xl sm:text-3xl shadow-md";
+        document.querySelectorAll("#g1-options-grid button").forEach(b => b.disabled = true);
+
+        document.getElementById("g1-div-blank").textContent = q.quotient;
+        document.getElementById("g1-mul-blank").textContent = q.quotient;
+
+        for (let i = 0; i < q.divisor; i++) {
+          const pod = document.getElementById(`g1-pod-${i}`);
+          const plate = document.getElementById(`g1-plate-${i}`);
+          if (pod) pod.className = "bg-emerald-500/20 border-2 border-emerald-400 rounded-2xl px-3 py-2.5 min-w-[78px] -translate-y-1 transition";
+          if (plate) plate.textContent = `${q.snack.emoji} ${q.quotient}개!`;
+        }
+
+        document.getElementById("g1-progress-text").textContent = `${g1Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g1FirstTry}개`;
+
+        const msg = `⚡ 광선총 명중! ${q.divisor} × ${q.quotient} = ${q.dividend}이므로 한 명당 ${q.quotient}개씩 배달 완료!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-emerald-500/20 border-emerald-400 text-emerald-200";
+        fb.textContent = msg;
+        fb.style.display = "block";
+
+        const nextBtn = document.getElementById("g1-next-btn");
+        nextBtn.querySelector("span").textContent = g1Index === TOTAL_QUESTIONS - 1 ? "배달 결과 보기 🏆" : "다음 배달 출발! 🚀";
+        nextBtn.style.display = "block";
+
+        speak(`정답이에요! ${q.divisor} 곱하기 ${q.quotient}는 ${q.dividend}! 한 명당 ${q.quotient}개씩 받았어요.`);
+      } else {
+        g1Attempted = true;
+        playSound("err");
+        btn.classList.add("animate-shake", "opacity-60");
+        btn.style.background = "linear-gradient(180deg, #ef4444, #b91c1c)";
+        btn.disabled = true;
+
+        const totalNeeded = q.divisor * selected;
+        const hintText = totalNeeded < q.dividend
+          ? `앗! ${q.divisor} × ${selected} = ${totalNeeded}개라서 간식이 ${q.dividend - totalNeeded}개 남아요. 더 큰 수를 눌러보세요!`
+          : `앗! ${q.divisor} × ${selected} = ${totalNeeded}개라서 간식이 ${totalNeeded - q.dividend}개 모자라요. 더 작은 수를 눌러보세요!`;
+
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200";
+        fb.textContent = hintText;
+        fb.style.display = "block";
+        speak(hintText);
+      }
+    }
+
+    function nextGame1Question() {
+      playSound("tap");
+      if (g1Index < TOTAL_QUESTIONS - 1) {
+        g1Index++;
+        renderGame1Question();
+      } else {
+        document.getElementById("g1-progress-fill").style.width = "100%";
+        document.getElementById("res-emoji").textContent = "🚀🏆";
+        document.getElementById("res-title").textContent = "우주 간식 배달 대성공!";
+        document.getElementById("res-summary").textContent =
+          `배달 ${runCounts.g1}회차 임무를 완수했어요! 다시 시작하면 숫자가 모두 새롭게 바뀝니다.`;
+        document.getElementById("res-score-pill").textContent =
+          `첫 시도에 맞힌 별: ⭐ ${g1FirstTry} / ${TOTAL_QUESTIONS}`;
+        document.getElementById("res-replay-btn").querySelector("span").textContent =
+          "🎲 새로운 숫자로 다시 배달하기";
+        showScreen("screen-result");
+        speak(`우주 간식 배달 대성공! 열 문제 중 ${g1FirstTry}문제를 한 번에 맞혔어요.`);
+      }
+    }
+
+    /*************************************************************************
+     * 3. GAME 2: 💎 보석 상자 포장 공장
+     *    - Lines 1~3: Classic 2-Pad (Quotient & Remainder)
+     *    - Line 4 (`grade4_2digit_q1`): 3-Step Guided Flow (Q -> Divisor*Q -> Dividend-Product)
+     *    - Line 5 (`grade4_2digit_q2`): 2-Round Guided Flow (Tens Q -> Tens Mul -> Ones Q -> Ones Mul -> Remainder)
+     *************************************************************************/
+    const G2_GEMS = [
+      { name: "루비", emoji: "💎" },
+      { name: "에메랄드", emoji: "💚" },
+      { name: "황금보석", emoji: "🔶" },
+      { name: "자수정", emoji: "🔮" },
+      { name: "별보석", emoji: "✨" }
+    ];
+
+    let g2Questions = [];
+    let g2Index = 0;
+    let g2FirstTry = 0;
+    let g2HadWrong = false;
+    let g2Solved = false;
+    let g2SelectedQ = null;
+    let g2SelectedR = null;
+    let g2PrevSignatures = new Set();
+
+    // Guided State for Line 4 & Line 5
+    let guidedState = {
+      step: "",           // Line 4: 'q1_pickQ' | 'q1_mul' | 'q1_sub'
+                          // Line 5: 'r1_pickTens' | 'r1_mulTens' | 'r2_pickOnes' | 'r2_mulOnes' | 'r2_subRem'
+      chosenQ: null,      // Line 4 chosen quotient
+      chosenProduct: null,// Line 4 confirmed product
+      tensQ: null,        // Line 5 chosen tens quotient (10, 20, 30, 40)
+      tensProduct: null,  // Line 5 confirmed divisor * tensQ
+      remAfterTens: null, // Line 5 dividend - tensProduct
+      onesQ: null,        // Line 5 chosen ones quotient (0..9)
+      onesProduct: null   // Line 5 confirmed divisor * onesQ
+    };
+
+    function buildGame2Choices(correctVal, minVal, maxVal, includeTrapVal) {
+      const set = new Set([correctVal]);
+      if (includeTrapVal !== null && includeTrapVal <= maxVal) {
+        set.add(includeTrapVal);
+      }
+      const pool = [];
+      for (let v = minVal; v <= maxVal; v++) {
+        if (!set.has(v)) pool.push(v);
+      }
+      for (const c of shuffle(pool)) {
+        if (set.size >= 8) break;
+        set.add(c);
+      }
+      return Array.from(set).sort((a, b) => a - b);
+    }
+
+    function buildFourMathChoices(correctVal, candidateList, minAllowed = 0) {
+      const set = new Set([correctVal]);
+      for (const cand of candidateList) {
+        if (cand >= minAllowed && cand !== correctVal) {
+          set.add(cand);
+        }
+        if (set.size === 4) break;
+      }
+      let offset = 1;
+      while (set.size < 4) {
+        const up = correctVal + offset * 10;
+        if (up !== correctVal) set.add(up);
+        offset++;
+      }
+      return Array.from(set).sort((a, b) => a - b);
+    }
+
+    function generateGame2Questions(mode) {
+      const list = [];
+      const used = new Set();
+      let guard = 0;
+
+      while (list.length < TOTAL_QUESTIONS && guard < 900) {
+        guard++;
+        let dividend, divisor, quotient, remainder;
+
+        if (mode === "grade3_basic") {
+          divisor = randInt(3, 9);
+          quotient = randInt(2, 9);
+          remainder = randInt(1, divisor - 1);
+          dividend = divisor * quotient + remainder;
+        } else if (mode === "grade3_adv") {
+          divisor = randInt(3, 7);
+          quotient = randInt(11, 18);
+          remainder = randInt(1, divisor - 1);
+          dividend = divisor * quotient + remainder;
+          if (dividend > 99) continue;
+        } else if (mode === "grade4_div") {
+          divisor = randInt(2, 6) * 10;
+          quotient = randInt(3, 9);
+          remainder = randInt(1, 9) * (Math.random() < 0.5 ? 1 : 2);
+          if (remainder >= divisor) remainder = divisor - 5;
+          dividend = divisor * quotient + remainder;
+          if (dividend < 100 || dividend > 599) continue;
+        } else if (mode === "grade4_2digit_q1") {
+          // Line 4: 3-digit ÷ 2-digit (non-multiple of 10), 1-digit quotient (3..8)
+          divisor = randInt(13, 48);
+          if (divisor % 10 === 0) continue;
+          quotient = randInt(3, 8);
+          remainder = Math.random() < 0.25 ? 0 : randInt(1, divisor - 1);
+          dividend = divisor * quotient + remainder;
+          if (dividend < 105 || dividend > 420) continue;
+        } else {
+          // Line 5: 3-digit ÷ 2-digit (non-multiple of 10), 2-digit quotient (12..36)
+          divisor = randInt(12, 34);
+          if (divisor % 10 === 0) continue;
+          quotient = randInt(12, 36);
+          remainder = Math.random() < 0.25 ? 0 : randInt(1, divisor - 1);
+          dividend = divisor * quotient + remainder;
+          if (dividend < 144 || dividend > 960) continue;
+        }
+
+        const sig = `${dividend}/${divisor}`;
+        if (used.has(sig)) continue;
+        if (g2PrevSignatures.has(sig) && guard < 450) continue;
+        used.add(sig);
+
+        const qChoices = buildGame2Choices(quotient, Math.max(1, quotient - 4), quotient + 4, null);
+        const rChoices = mode === "grade4_div"
+          ? buildFourMathChoices(remainder, [0, divisor, remainder + 5, Math.max(0, remainder - 5), remainder + 10, divisor + 2], 0)
+          : buildGame2Choices(remainder, 0, Math.max(divisor + 1, 7), divisor);
+
+        list.push({
+          dividend,
+          divisor,
+          quotient,
+          remainder,
+          gem: G2_GEMS[randInt(0, G2_GEMS.length - 1)],
+          qChoices,
+          rChoices
+        });
+      }
+
+      g2PrevSignatures = used;
+      return list;
+    }
+
+    function startGame2(mode) {
+      playSound("tap");
+      activeGame = "g2";
+      activeMode = mode;
+      g2Questions = generateGame2Questions(mode);
+      g2Index = 0;
+      g2FirstTry = 0;
+
+      document.getElementById("run-badge").textContent = `도전 ${totalChallengeCount}회차 · 가동 ${runCounts.g2}회`;
+      const titles = {
+        grade3_basic: "💎 1라인: 루비 라인 (3학년 기초)",
+        grade3_adv: "💠 2라인: 사파이어 라인 (3학년 심화)",
+        grade4_div: "💚 3라인: 에메랄드 라인 (4학년 세 자리 수 ÷ 몇십)",
+        grade4_2digit_q1: "🔮 4라인: 자수정 라인 (4학년 세 자리 수 ÷ 몇십몇 · 몫이 1자리)",
+        grade4_2digit_q2: "👑 5라인: 다이아 라인 (4학년 세 자리 수 ÷ 몇십몇 · 몫이 2자리)"
+      };
+      document.getElementById("g2-stage-label").textContent = titles[mode];
+
+      showScreen("screen-game2");
+      renderGame2Question();
+    }
+
+    function renderGame2Question() {
+      const q = g2Questions[g2Index];
+      g2SelectedQ = null;
+      g2SelectedR = null;
+      g2HadWrong = false;
+      g2Solved = false;
+
+      document.getElementById("g2-progress-fill").style.width = `${(g2Index / TOTAL_QUESTIONS) * 100}%`;
+      document.getElementById("g2-progress-text").textContent = `${g2Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g2FirstTry}개`;
+
+      document.getElementById("g2-banner").innerHTML =
+        `${q.gem.emoji} ${q.gem.name} <strong class="text-[#ffd166] text-xl">${q.dividend}개</strong>를 한 상자에 <strong class="text-[#ffd166] text-xl">${q.divisor}개씩</strong> 포장해 주세요!`;
+
+      document.getElementById("g2-feedback").style.display = "none";
+      document.getElementById("g2-next-btn").style.display = "none";
+
+      const isGuidedMode = activeMode === "grade4_2digit_q1" || activeMode === "grade4_2digit_q2";
+      const estWrap = document.getElementById("g2-estimate-wrap");
+      const estPill = document.getElementById("g2-estimate-pill");
+
+      if (isGuidedMode) {
+        const roundedDivisor = Math.round(q.divisor / 10) * 10;
+        const digitLabel = activeMode === "grade4_2digit_q1" ? "한 자리 수" : "두 자리 수";
+        estPill.textContent = `🔮 어림 힌트: 나누는 수 ${q.divisor} → 약 ${roundedDivisor}으로 어림해 보세요! (몫은 ${digitLabel})`;
+        estWrap.style.display = "block";
+
+        document.getElementById("g2-classic-area").style.display = "none";
+        document.getElementById("g2-guided-area").style.display = "block";
+
+        if (activeMode === "grade4_2digit_q1") {
+          guidedState = {
+            step: "q1_pickQ",
+            chosenQ: null,
+            chosenProduct: null,
+            tensQ: null,
+            tensProduct: null,
+            remAfterTens: null,
+            onesQ: null,
+            onesProduct: null
+          };
+          renderLine4GuidedUI();
+        } else {
+          guidedState = {
+            step: "r1_pickTens",
+            chosenQ: null,
+            chosenProduct: null,
+            tensQ: null,
+            tensProduct: null,
+            remAfterTens: null,
+            onesQ: null,
+            onesProduct: null
+          };
+          renderLine5GuidedUI();
+        }
+      } else {
+        estWrap.style.display = "none";
+        document.getElementById("g2-classic-area").style.display = "block";
+        document.getElementById("g2-guided-area").style.display = "none";
+        renderClassicGame2UI();
+      }
+    }
+
+    /*************************************************************************
+     * 3A. CLASSIC 2-PAD UI & LOGIC (LINES 1, 2, 3)
+     *************************************************************************/
+    function renderClassicGame2UI() {
+      const q = g2Questions[g2Index];
+      document.getElementById("g2-box-zone-title").textContent = `📦 한 상자에 ${q.divisor}개씩 담은 상자 (몫)`;
+
+      const qWrap = document.getElementById("g2-q-buttons");
+      qWrap.innerHTML = q.qChoices.map(val => `
+        <button type="button" onclick="pickGame2Q(${val}, this)"
+          class="bg-[#131936] hover:border-sky-300 border-2 border-white/15 rounded-xl py-3 px-1 text-white font-black text-lg sm:text-xl">
+          <span>${val}</span>
+        </button>
+      `).join("");
+
+      const rWrap = document.getElementById("g2-r-buttons");
+      rWrap.innerHTML = q.rChoices.map(val => `
+        <button type="button" onclick="pickGame2R(${val}, this)"
+          class="bg-[#131936] hover:border-amber-300 border-2 border-white/15 rounded-xl py-3 px-1 text-white font-black text-lg sm:text-xl">
+          <span>${val}</span>
+        </button>
+      `).join("");
+
+      updateClassicLiveVisuals();
+      speak(`${q.gem.name} ${q.dividend}개를 한 상자에 ${q.divisor}개씩 포장하면 몇 상자가 되고 몇 개가 남을까요?`);
+    }
+
+    function updateClassicLiveVisuals() {
+      const q = g2Questions[g2Index];
+      const qStr = g2SelectedQ !== null ? g2SelectedQ : "?";
+      const rStr = g2SelectedR !== null ? g2SelectedR : "?";
+
+      document.getElementById("g2-div-display").innerHTML =
+        `${q.dividend} ÷ ${q.divisor} = <span class="inline-block min-w-[42px] px-2 rounded-lg bg-sky-500/20 border-2 border-dashed border-sky-400 text-sky-300">${qStr}</span> … <span class="inline-block min-w-[42px] px-2 rounded-lg bg-amber-400/20 border-2 border-dashed border-amber-300 text-amber-300">${rStr}</span>`;
+
+      document.getElementById("g2-check-display").innerHTML =
+        `${q.divisor} × <span class="inline-block min-w-[42px] px-2 rounded-lg bg-sky-500/20 border-2 border-dashed border-sky-400 text-sky-300">${qStr}</span> + <span class="inline-block min-w-[42px] px-2 rounded-lg bg-amber-400/20 border-2 border-dashed border-amber-300 text-amber-300">${rStr}</span> = ${q.dividend}`;
+
+      document.getElementById("g2-q-badge").textContent = g2SelectedQ !== null ? `${g2SelectedQ}상자` : "미선택";
+      document.getElementById("g2-r-badge").textContent = g2SelectedR !== null ? `${g2SelectedR}개` : "미선택";
+
+      const boxesWrap = document.getElementById("g2-boxes-container");
+      if (g2SelectedQ === null) {
+        boxesWrap.innerHTML = "상자 수를 터치하세요";
+      } else {
+        const showCount = Math.min(g2SelectedQ, 12);
+        let html = Array.from({ length: showCount }, () =>
+          `<span class="bg-sky-500/20 border border-sky-400 rounded-lg px-2 py-1 text-xs font-extrabold text-sky-100">📦 ${q.divisor}개</span>`
+        ).join("");
+        if (g2SelectedQ > 12) {
+          html += `<span class="bg-sky-500/20 border border-sky-400 rounded-lg px-2 py-1 text-xs font-extrabold text-sky-100">+ ${g2SelectedQ - 12}상자 더</span>`;
+        }
+        boxesWrap.innerHTML = html;
+      }
+
+      const trayWrap = document.getElementById("g2-tray-container");
+      if (g2SelectedR === null) {
+        trayWrap.textContent = "남은 개수를 터치하세요";
+      } else if (g2SelectedR === 0) {
+        trayWrap.textContent = "남은 보석 없음 (0개)";
+      } else {
+        trayWrap.textContent = g2SelectedR <= 10
+          ? `${q.gem.emoji.repeat(g2SelectedR)} (${g2SelectedR}개)`
+          : `${q.gem.emoji} × ${g2SelectedR}개`;
+      }
+
+      document.getElementById("g2-check-btn").disabled = !(g2SelectedQ !== null && g2SelectedR !== null) || g2Solved;
+    }
+
+    function pickGame2Q(val, btn) {
+      if (g2Solved) return;
+      playSound("tap");
+      g2SelectedQ = val;
+      document.querySelectorAll("#g2-q-buttons button").forEach(b => {
+        b.className = "bg-[#131936] hover:border-sky-300 border-2 border-white/15 rounded-xl py-3 px-1 text-white font-black text-lg sm:text-xl";
+      });
+      btn.className = "bg-sky-400 border-2 border-sky-100 rounded-xl py-3 px-1 text-slate-950 font-black text-lg sm:text-xl shadow-sm";
+      updateClassicLiveVisuals();
+    }
+
+    function pickGame2R(val, btn) {
+      if (g2Solved) return;
+      playSound("tap");
+      g2SelectedR = val;
+      document.querySelectorAll("#g2-r-buttons button").forEach(b => {
+        b.className = "bg-[#131936] hover:border-amber-300 border-2 border-white/15 rounded-xl py-3 px-1 text-white font-black text-lg sm:text-xl";
+      });
+      btn.className = "bg-amber-400 border-2 border-amber-100 rounded-xl py-3 px-1 text-slate-950 font-black text-lg sm:text-xl shadow-sm";
+      updateClassicLiveVisuals();
+    }
+
+    function checkGame2ClassicPacking() {
+      if (g2SelectedQ === null || g2SelectedR === null || g2Solved) return;
+      const q = g2Questions[g2Index];
+      const fb = document.getElementById("g2-feedback");
+
+      if (g2SelectedR >= q.divisor) {
+        g2HadWrong = true;
+        playSound("err");
+        const warnMsg = `🚨 남은 보석이 ${g2SelectedR}개이면 한 상자를 더 포장할 수 있어요! 나머지는 항상 나누는 수(${q.divisor})보다 작아야 합니다.`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = warnMsg;
+        fb.style.display = "block";
+        speak(warnMsg);
+        return;
+      }
+
+      const packedTotal = q.divisor * g2SelectedQ + g2SelectedR;
+      if (packedTotal === q.dividend && g2SelectedQ === q.quotient && g2SelectedR === q.remainder) {
+        g2Solved = true;
+        playSound("ok");
+        if (!g2HadWrong) g2FirstTry++;
+
+        document.getElementById("g2-progress-text").textContent = `${g2Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g2FirstTry}개`;
+        document.getElementById("g2-check-btn").disabled = true;
+
+        const okMsg = q.remainder === 0
+          ? `🎉 포장 합격! ${q.divisor}개씩 ${q.quotient}상자로 나누어떨어져서 남은 보석이 0개입니다!`
+          : `🎉 포장 합격! ${q.divisor}개씩 ${q.quotient}상자(${q.divisor * q.quotient}개)에 남은 ${q.remainder}개를 더하면 딱 ${q.dividend}개입니다!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-emerald-500/20 border-emerald-400 text-emerald-200";
+        fb.textContent = okMsg;
+        fb.style.display = "block";
+
+        const nextBtn = document.getElementById("g2-next-btn");
+        nextBtn.querySelector("span").textContent = g2Index === TOTAL_QUESTIONS - 1 ? "공장 가동 결과 보기 🏆" : "다음 보석 묶음 받기! ⚙️";
+        nextBtn.style.display = "block";
+
+        speak(`포장 합격! 몫은 ${q.quotient}, 나머지는 ${q.remainder}입니다.`);
+      } else {
+        g2HadWrong = true;
+        playSound("err");
+        const hint = packedTotal < q.dividend
+          ? `🔍 검산해 볼까요? ${q.divisor} × ${g2SelectedQ} + ${g2SelectedR} = ${packedTotal}개라서 원래 보석 ${q.dividend}개보다 ${q.dividend - packedTotal}개 모자라요! 상자 수를 늘려보세요.`
+          : `🔍 검산해 볼까요? ${q.divisor} × ${g2SelectedQ} + ${g2SelectedR} = ${packedTotal}개라서 원래 보석 ${q.dividend}개보다 ${packedTotal - q.dividend}개 더 많아요! 상자 수를 줄여보세요.`;
+
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = hint;
+        fb.style.display = "block";
+        speak(hint);
+      }
+    }
+
+    /*************************************************************************
+     * 3B. LINE 4 GUIDED 3-STEP WORKFLOW (세 자리 수 ÷ 몇십몇 · 몫이 1자리)
+     *     Step 1: Choose Quotient -> Step 2: Multiply Divisor × Q -> Step 3: Subtract Remainder
+     *************************************************************************/
+    function renderLine4GuidedUI() {
+      const q = g2Questions[g2Index];
+      const st = guidedState;
+
+      // 1. Step Pills
+      const pills = [
+        { id: "q1_pickQ", label: "1단계 · 상자 수(몫) 정하기" },
+        { id: "q1_mul", label: "2단계 · 곱셈으로 개수 확인" },
+        { id: "q1_sub", label: "3단계 · 뺄셈으로 나머지 구하기" }
+      ];
+      document.getElementById("guided-step-pills").innerHTML = pills.map((p, i) => {
+        const isCurrent = st.step === p.id && !g2Solved;
+        const isDone = g2Solved ||
+          (p.id === "q1_pickQ" && (st.step === "q1_mul" || st.step === "q1_sub")) ||
+          (p.id === "q1_mul" && st.step === "q1_sub");
+        return `<span class="px-3 py-1 rounded-full text-xs font-extrabold border ${
+          isDone
+            ? "bg-emerald-500/25 border-emerald-400 text-emerald-200"
+            : isCurrent
+              ? "bg-amber-400 text-slate-950 border-amber-200 shadow-sm"
+              : "bg-slate-800/70 border-white/10 text-slate-400"
+        }">${isDone ? "✓ " : ""}${p.label}</span>`;
+      }).join("");
+
+      // 2. Live Vertical Division Ledger
+      const qDisp = st.chosenQ !== null ? `${st.chosenQ}상자` : "? 상자";
+      const mulDisp = st.chosenProduct !== null
+        ? `${q.divisor} × ${st.chosenQ} = ${st.chosenProduct}개`
+        : (st.chosenQ !== null ? `${q.divisor} × ${st.chosenQ} = ? 개` : `${q.divisor} × ? = ?`);
+      const remDisp = g2Solved
+        ? `${q.remainder}개`
+        : (st.chosenProduct !== null ? `${q.dividend} - ${st.chosenProduct} = ? 개` : "? 개");
+
+      document.getElementById("guided-ledger").innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-center">
+          <div class="bg-[#161f42] border border-sky-400/40 rounded-xl p-3">
+            <div class="text-xs text-sky-300 font-extrabold mb-1">1️⃣ 선택한 상자 수 (몫)</div>
+            <div class="text-xl sm:text-2xl font-black text-white">${qDisp}</div>
+          </div>
+          <div class="bg-[#161f42] border border-purple-400/40 rounded-xl p-3">
+            <div class="text-xs text-purple-300 font-extrabold mb-1">2️⃣ 포장한 보석 수 (곱셈)</div>
+            <div class="text-lg sm:text-xl font-black text-amber-300">${mulDisp}</div>
+          </div>
+          <div class="bg-[#161f42] border border-emerald-400/40 rounded-xl p-3">
+            <div class="text-xs text-emerald-300 font-extrabold mb-1">3️⃣ 남은 보석 수 (뺄셈)</div>
+            <div class="text-lg sm:text-xl font-black text-emerald-300">${remDisp}</div>
+          </div>
+        </div>
+      `;
+
+      // 3. Active Step Choices
+      const actionBox = document.getElementById("guided-action-box");
+      const titleEl = document.getElementById("guided-step-title");
+      const subEl = document.getElementById("guided-step-sub");
+      const gridEl = document.getElementById("guided-choice-grid");
+
+      if (g2Solved) {
+        actionBox.style.display = "none";
+        return;
+      }
+      actionBox.style.display = "block";
+
+      if (st.step === "q1_pickQ") {
+        titleEl.textContent = "1단계: 먼저 몇 상자 포장할 수 있을지 어림해 보세요!";
+        subEl.textContent = `전체 ${q.dividend}개를 ${q.divisor}개씩 담을 때 알맞은 상자 수(몫)를 터치하세요.`;
+
+        const qButtons = buildFourMathChoices(
+          q.quotient,
+          [q.quotient - 1, q.quotient + 1, q.quotient - 2, q.quotient + 2],
+          1
+        );
+        gridEl.innerHTML = qButtons.map(val => `
+          <button type="button" onclick="handleLine4PickQ(${val})"
+            class="bg-gradient-to-b from-[#2b3a78] to-[#202c5e] hover:border-sky-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}상자</span>
+          </button>
+        `).join("");
+
+        speak(`전체 ${q.dividend}개를 ${q.divisor}개씩 담으려고 해요. 먼저 몇 상자 포장할 수 있을지 골라보세요.`);
+      } else if (st.step === "q1_mul") {
+        const trueProd = q.divisor * st.chosenQ;
+        titleEl.textContent = `2단계: ${q.divisor}개씩 ${st.chosenQ}상자면 보석은 모두 몇 개일까요?`;
+        subEl.textContent = `${q.divisor} × ${st.chosenQ} 의 값을 아래 버튼에서 터치해 확인하세요!`;
+
+        const mulButtons = buildFourMathChoices(
+          trueProd,
+          [
+            trueProd - 10,
+            trueProd + 10,
+            trueProd - q.divisor,
+            trueProd + q.divisor,
+            (q.divisor % 10) * st.chosenQ + Math.floor(q.divisor / 10) * 10
+          ],
+          10
+        );
+        gridEl.innerHTML = mulButtons.map(val => `
+          <button type="button" onclick="handleLine4PickMul(${val})"
+            class="bg-gradient-to-b from-[#3b2d71] to-[#291e52] hover:border-purple-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}개</span>
+          </button>
+        `).join("");
+
+        speak(`${q.divisor} 곱하기 ${st.chosenQ}은 얼마일까요?`);
+      } else if (st.step === "q1_sub") {
+        titleEl.textContent = `3단계: 전체 ${q.dividend}개에서 포장한 ${st.chosenProduct}개를 빼면 몇 개 남을까요?`;
+        subEl.textContent = `${q.dividend} - ${st.chosenProduct} = 남은 보석(나머지)을 터치하세요!`;
+
+        const trueRem = q.dividend - st.chosenProduct;
+        const subButtons = buildFourMathChoices(
+          trueRem,
+          [
+            trueRem + 10,
+            Math.max(0, trueRem - 10),
+            trueRem + 1,
+            Math.max(0, trueRem - 1),
+            trueRem + 2,
+            0
+          ],
+          0
+        );
+        gridEl.innerHTML = subButtons.map(val => `
+          <button type="button" onclick="handleLine4PickSub(${val})"
+            class="bg-gradient-to-b from-[#1e4d40] to-[#14362d] hover:border-emerald-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>남은 보석 ${val}개</span>
+          </button>
+        `).join("");
+
+        speak(`전체 ${q.dividend}개에서 ${st.chosenProduct}개를 빼면 몇 개가 남을까요?`);
+      }
+    }
+
+    function handleLine4PickQ(val) {
+      playSound("tap");
+      guidedState.chosenQ = val;
+      guidedState.chosenProduct = null;
+      guidedState.step = "q1_mul";
+      document.getElementById("g2-feedback").style.display = "none";
+      renderLine4GuidedUI();
+    }
+
+    function handleLine4PickMul(val) {
+      const q = g2Questions[g2Index];
+      const trueProd = q.divisor * guidedState.chosenQ;
+      const fb = document.getElementById("g2-feedback");
+
+      if (val !== trueProd) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `앗! ${q.divisor} × ${guidedState.chosenQ} 계산을 다시 해볼까요? 일의 자리(${q.divisor % 10} × ${guidedState.chosenQ})부터 차근차근 곱해보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        speak(msg);
+        return;
+      }
+
+      // Product is correct! Now verify whether chosenQ was too large, too small, or just right!
+      if (trueProd > q.dividend) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🚨 ${q.divisor} × ${guidedState.chosenQ} = ${trueProd}개! 전체 보석(${q.dividend}개)보다 많아서 포장할 수 없어요. 1단계로 돌아가 상자 수를 줄여보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "q1_pickQ";
+        guidedState.chosenQ = null;
+        guidedState.chosenProduct = null;
+        renderLine4GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      if (q.dividend - trueProd >= q.divisor) {
+        g2HadWrong = true;
+        playSound("err");
+        const leftover = q.dividend - trueProd;
+        const msg = `🚨 ${q.divisor} × ${guidedState.chosenQ} = ${trueProd}개이면 보석이 ${leftover}개나 남아서 한 상자(${q.divisor}개)를 더 포장할 수 있어요! 1단계로 돌아가 상자 수를 늘려보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "q1_pickQ";
+        guidedState.chosenQ = null;
+        guidedState.chosenProduct = null;
+        renderLine4GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      // Valid quotient & product! Proceed to Step 3 (Subtraction Remainder)
+      playSound("ok");
+      guidedState.chosenProduct = trueProd;
+      guidedState.step = "q1_sub";
+      fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-sky-500/20 border-sky-400 text-sky-200";
+      fb.textContent = `👍 맞았어요! ${q.divisor} × ${guidedState.chosenQ} = ${trueProd}개를 포장했습니다. 이제 3단계에서 남은 보석 수를 구해보세요!`;
+      fb.style.display = "block";
+      renderLine4GuidedUI();
+    }
+
+    function handleLine4PickSub(val) {
+      const q = g2Questions[g2Index];
+      const fb = document.getElementById("g2-feedback");
+
+      if (val !== q.remainder) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🔍 다시 빼볼까요? 전체 ${q.dividend}개에서 포장한 ${guidedState.chosenProduct}개를 빼면 몇 개가 남는지 계산해 보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        speak(msg);
+        return;
+      }
+
+      // Solved Line 4 Question!
+      g2Solved = true;
+      playSound("ok");
+      if (!g2HadWrong) g2FirstTry++;
+
+      document.getElementById("g2-progress-text").textContent = `${g2Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g2FirstTry}개`;
+      renderLine4GuidedUI();
+
+      const okMsg = `🎉 완벽해요! ${q.dividend} ÷ ${q.divisor} = ${q.quotient} … ${q.remainder} (${q.divisor} × ${q.quotient} + ${q.remainder} = ${q.dividend})`;
+      fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-emerald-500/20 border-emerald-400 text-emerald-200";
+      fb.textContent = okMsg;
+      fb.style.display = "block";
+
+      const nextBtn = document.getElementById("g2-next-btn");
+      nextBtn.querySelector("span").textContent = g2Index === TOTAL_QUESTIONS - 1 ? "공장 가동 결과 보기 🏆" : "다음 보석 묶음 받기! ⚙️";
+      nextBtn.style.display = "block";
+
+      speak(`완벽해요! 몫은 ${q.quotient}, 나머지는 ${q.remainder}입니다.`);
+    }
+
+    /*************************************************************************
+     * 3C. LINE 5 GUIDED 2-ROUND WORKFLOW (세 자리 수 ÷ 몇십몇 · 몫이 2자리)
+     *     Round 1 (Tens): Pick 10/20/30/40 boxes -> Multiply -> Remaining gems
+     *     Round 2 (Ones): Pick 0..9 boxes -> Multiply -> Subtract Final Remainder -> Combine!
+     *************************************************************************/
+    function renderLine5GuidedUI() {
+      const q = g2Questions[g2Index];
+      const st = guidedState;
+
+      // 1. Round & Step Pills
+      const pills = [
+        { id: "r1_pickTens", label: "1라운드 · 큰 상자(십의 자리)" },
+        { id: "r1_mulTens", label: "큰 상자 곱셈 확인" },
+        { id: "r2_pickOnes", label: "2라운드 · 작은 상자(일의 자리)" },
+        { id: "r2_mulOnes", label: "작은 상자 곱셈 확인" },
+        { id: "r2_subRem", label: "최종 나머지 구하기" }
+      ];
+      const order = pills.map(p => p.id);
+      const currIdx = order.indexOf(st.step);
+
+      document.getElementById("guided-step-pills").innerHTML = pills.map((p, idx) => {
+        const isDone = g2Solved || idx < currIdx;
+        const isCurrent = !g2Solved && idx === currIdx;
+        return `<span class="px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-extrabold border ${
+          isDone
+            ? "bg-emerald-500/25 border-emerald-400 text-emerald-200"
+            : isCurrent
+              ? "bg-amber-400 text-slate-950 border-amber-200 shadow-sm"
+              : "bg-slate-800/70 border-white/10 text-slate-400"
+        }">${isDone ? "✓ " : ""}${p.label}</span>`;
+      }).join("");
+
+      // 2. Two-Round Vertical Division Ledger
+      const r1BoxText = st.tensQ !== null ? `${st.tensQ}상자` : "? 상자";
+      const r1MulText = st.tensProduct !== null
+        ? `${q.divisor} × ${st.tensQ} = ${st.tensProduct}개`
+        : (st.tensQ !== null ? `${q.divisor} × ${st.tensQ} = ?` : "대기 중");
+      const r1RemText = st.remAfterTens !== null
+        ? `${q.dividend} - ${st.tensProduct} = ${st.remAfterTens}개`
+        : "? 개";
+
+      const r2BoxText = st.onesQ !== null ? `${st.onesQ}상자` : "? 상자";
+      const r2MulText = st.onesProduct !== null
+        ? `${q.divisor} × ${st.onesQ} = ${st.onesProduct}개`
+        : (st.onesQ !== null ? `${q.divisor} × ${st.onesQ} = ?` : "대기 중");
+      const r2RemText = g2Solved
+        ? `최종 나머지 ${q.remainder}개`
+        : (st.onesProduct !== null ? `${st.remAfterTens} - ${st.onesProduct} = ?` : "? 개");
+
+      document.getElementById("guided-ledger").innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+          <div class="bg-[#161f42] border-2 ${st.remAfterTens !== null ? "border-emerald-400/50" : "border-sky-400/50"} rounded-xl p-3">
+            <div class="text-xs font-black text-sky-300 mb-1.5">📦 1라운드: 큰 상자 묶음 (십의 자리)</div>
+            <div class="text-xs sm:text-sm text-slate-200 space-y-1 font-bold">
+              <div>• 큰 상자 수: <span class="text-white font-black">${r1BoxText}</span></div>
+              <div>• 포장한 개수: <span class="text-amber-300 font-black">${r1MulText}</span></div>
+              <div>• 남은 보석: <span class="text-emerald-300 font-black">${r1RemText}</span></div>
+            </div>
+          </div>
+
+          <div class="bg-[#161f42] border-2 ${g2Solved ? "border-emerald-400/50" : "border-amber-400/45"} rounded-xl p-3">
+            <div class="text-xs font-black text-amber-300 mb-1.5">🎁 2라운드: 작은 상자 (일의 자리)</div>
+            <div class="text-xs sm:text-sm text-slate-200 space-y-1 font-bold">
+              <div>• 작은 상자 수: <span class="text-white font-black">${r2BoxText}</span></div>
+              <div>• 포장한 개수: <span class="text-amber-300 font-black">${r2MulText}</span></div>
+              <div>• 최종 나머지: <span class="text-emerald-300 font-black">${r2RemText}</span></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // 3. Active Step Choices
+      const actionBox = document.getElementById("guided-action-box");
+      const titleEl = document.getElementById("guided-step-title");
+      const subEl = document.getElementById("guided-step-sub");
+      const gridEl = document.getElementById("guided-choice-grid");
+
+      if (g2Solved) {
+        actionBox.style.display = "none";
+        return;
+      }
+      actionBox.style.display = "block";
+
+      if (st.step === "r1_pickTens") {
+        titleEl.textContent = "1라운드 ①: 먼저 10상자씩 몇 묶음(십의 자리) 포장할까요?";
+        subEl.textContent = `전체 ${q.dividend}개를 ${q.divisor}개씩 담을 때, 큰 상자 묶음 수를 터치하세요!`;
+
+        const choices = [10, 20, 30, 40];
+        gridEl.innerHTML = choices.map(val => `
+          <button type="button" onclick="handleLine5PickTens(${val})"
+            class="bg-gradient-to-b from-[#2b3a78] to-[#202c5e] hover:border-sky-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}상자</span>
+          </button>
+        `).join("");
+
+        speak(`전체 ${q.dividend}개를 ${q.divisor}개씩 담을 때, 먼저 십의 자리 상자를 몇 상자 포장할 수 있을까요?`);
+      } else if (st.step === "r1_mulTens") {
+        const trueTensProd = q.divisor * st.tensQ;
+        titleEl.textContent = `1라운드 ②: ${q.divisor}개씩 ${st.tensQ}상자면 보석은 몇 개일까요?`;
+        subEl.textContent = `${q.divisor} × ${st.tensQ} 의 값을 터치해 확인하세요!`;
+
+        const choices = buildFourMathChoices(
+          trueTensProd,
+          [
+            trueTensProd - 10,
+            trueTensProd + 10,
+            trueTensProd - q.divisor * 10,
+            trueTensProd + q.divisor * 10,
+            trueTensProd + 20
+          ],
+          50
+        );
+        gridEl.innerHTML = choices.map(val => `
+          <button type="button" onclick="handleLine5PickMulTens(${val})"
+            class="bg-gradient-to-b from-[#3b2d71] to-[#291e52] hover:border-purple-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}개</span>
+          </button>
+        `).join("");
+
+        speak(`${q.divisor} 곱하기 ${st.tensQ}은 얼마일까요?`);
+      } else if (st.step === "r2_pickOnes") {
+        const trueOnes = q.quotient % 10;
+        titleEl.textContent = `2라운드 ①: 남은 ${st.remAfterTens}개로 작은 상자(일의 자리)를 몇 상자 만들까요?`;
+        subEl.textContent = `남은 보석 ${st.remAfterTens}개를 ${q.divisor}개씩 포장할 때 알맞은 상자 수를 고르세요!`;
+
+        const choices = buildFourMathChoices(
+          trueOnes,
+          [trueOnes - 1, trueOnes + 1, trueOnes - 2, trueOnes + 2],
+          0
+        );
+        gridEl.innerHTML = choices.map(val => `
+          <button type="button" onclick="handleLine5PickOnes(${val})"
+            class="bg-gradient-to-b from-[#2b3a78] to-[#202c5e] hover:border-amber-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}상자</span>
+          </button>
+        `).join("");
+
+        speak(`남은 보석 ${st.remAfterTens}개로 작은 상자를 몇 상자 더 만들 수 있을까요?`);
+      } else if (st.step === "r2_mulOnes") {
+        const trueOnesProd = q.divisor * st.onesQ;
+        titleEl.textContent = `2라운드 ②: ${q.divisor}개씩 ${st.onesQ}상자면 보석은 몇 개일까요?`;
+        subEl.textContent = `${q.divisor} × ${st.onesQ} 의 값을 터치해 확인하세요!`;
+
+        const choices = buildFourMathChoices(
+          trueOnesProd,
+          [
+            trueOnesProd + 10,
+            Math.max(0, trueOnesProd - 10),
+            trueOnesProd + q.divisor,
+            Math.max(0, trueOnesProd - q.divisor),
+            trueOnesProd + 4
+          ],
+          0
+        );
+        gridEl.innerHTML = choices.map(val => `
+          <button type="button" onclick="handleLine5PickMulOnes(${val})"
+            class="bg-gradient-to-b from-[#3b2d71] to-[#291e52] hover:border-purple-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>${val}개</span>
+          </button>
+        `).join("");
+
+        speak(`${q.divisor} 곱하기 ${st.onesQ}은 얼마일까요?`);
+      } else if (st.step === "r2_subRem") {
+        titleEl.textContent = `2라운드 ③: 남은 ${st.remAfterTens}개에서 ${st.onesProduct}개를 빼면 최종 나머지는?`;
+        subEl.textContent = `${st.remAfterTens} - ${st.onesProduct} = 최종 남은 보석 개수를 터치하세요!`;
+
+        const trueRem = st.remAfterTens - st.onesProduct;
+        const choices = buildFourMathChoices(
+          trueRem,
+          [trueRem + 10, Math.max(0, trueRem - 10), trueRem + 1, Math.max(0, trueRem - 1), 0],
+          0
+        );
+        gridEl.innerHTML = choices.map(val => `
+          <button type="button" onclick="handleLine5PickSubRem(${val})"
+            class="bg-gradient-to-b from-[#1e4d40] to-[#14362d] hover:border-emerald-300 border-2 border-white/20 rounded-2xl py-4 px-3 text-white font-black text-2xl shadow-md">
+            <span>나머지 ${val}개</span>
+          </button>
+        `).join("");
+
+        speak(`${st.remAfterTens}에서 ${st.onesProduct}를 빼면 최종 나머지는 몇 개일까요?`);
+      }
+    }
+
+    function handleLine5PickTens(val) {
+      playSound("tap");
+      guidedState.tensQ = val;
+      guidedState.tensProduct = null;
+      guidedState.step = "r1_mulTens";
+      document.getElementById("g2-feedback").style.display = "none";
+      renderLine5GuidedUI();
+    }
+
+    function handleLine5PickMulTens(val) {
+      const q = g2Questions[g2Index];
+      const trueTensProd = q.divisor * guidedState.tensQ;
+      const fb = document.getElementById("g2-feedback");
+
+      if (val !== trueTensProd) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `앗! ${q.divisor} × ${guidedState.tensQ} 은 ${q.divisor} × ${guidedState.tensQ / 10} 뒤에 0을 붙여서 계산해 보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        speak(msg);
+        return;
+      }
+
+      if (trueTensProd > q.dividend) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🚨 ${q.divisor} × ${guidedState.tensQ} = ${trueTensProd}개! 전체 보석(${q.dividend}개)보다 많아서 포장할 수 없어요. 큰 상자 수를 줄여보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "r1_pickTens";
+        guidedState.tensQ = null;
+        renderLine5GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      const leftover = q.dividend - trueTensProd;
+      if (leftover >= q.divisor * 10) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🚨 남은 보석이 ${leftover}개라서 10상자(${q.divisor * 10}개)를 더 만들 수 있어요! 큰 상자 수를 늘려보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "r1_pickTens";
+        guidedState.tensQ = null;
+        renderLine5GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      // Valid Round 1!
+      playSound("ok");
+      guidedState.tensProduct = trueTensProd;
+      guidedState.remAfterTens = leftover;
+      guidedState.step = "r2_pickOnes";
+      fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-sky-500/20 border-sky-400 text-sky-200";
+      fb.textContent = `✨ 1라운드 성공! 큰 상자 ${guidedState.tensQ}개(${trueTensProd}개)를 포장하고, 이제 ${leftover}개가 남았어요!`;
+      fb.style.display = "block";
+      renderLine5GuidedUI();
+    }
+
+    function handleLine5PickOnes(val) {
+      playSound("tap");
+      guidedState.onesQ = val;
+      guidedState.onesProduct = null;
+      guidedState.step = "r2_mulOnes";
+      document.getElementById("g2-feedback").style.display = "none";
+      renderLine5GuidedUI();
+    }
+
+    function handleLine5PickMulOnes(val) {
+      const q = g2Questions[g2Index];
+      const trueOnesProd = q.divisor * guidedState.onesQ;
+      const fb = document.getElementById("g2-feedback");
+
+      if (val !== trueOnesProd) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `앗! ${q.divisor} × ${guidedState.onesQ} 계산을 다시 확인해 보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        speak(msg);
+        return;
+      }
+
+      if (trueOnesProd > guidedState.remAfterTens) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🚨 ${q.divisor} × ${guidedState.onesQ} = ${trueOnesProd}개! 남은 보석(${guidedState.remAfterTens}개)보다 많아요. 작은 상자 수를 줄여보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "r2_pickOnes";
+        guidedState.onesQ = null;
+        renderLine5GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      if (guidedState.remAfterTens - trueOnesProd >= q.divisor) {
+        g2HadWrong = true;
+        playSound("err");
+        const remNow = guidedState.remAfterTens - trueOnesProd;
+        const msg = `🚨 남은 보석 ${remNow}개로 상자(${q.divisor}개)를 1개 더 만들 수 있어요! 작은 상자 수를 늘려보세요!`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        guidedState.step = "r2_pickOnes";
+        guidedState.onesQ = null;
+        renderLine5GuidedUI();
+        speak(msg);
+        return;
+      }
+
+      playSound("ok");
+      guidedState.onesProduct = trueOnesProd;
+      guidedState.step = "r2_subRem";
+      fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-sky-500/20 border-sky-400 text-sky-200";
+      fb.textContent = `👍 맞았어요! 작은 상자 ${guidedState.onesQ}개(${trueOnesProd}개)를 포장했습니다. 마지막으로 최종 나머지를 빼볼까요?`;
+      fb.style.display = "block";
+      renderLine5GuidedUI();
+    }
+
+    function handleLine5PickSubRem(val) {
+      const q = g2Questions[g2Index];
+      const fb = document.getElementById("g2-feedback");
+
+      if (val !== q.remainder) {
+        g2HadWrong = true;
+        playSound("err");
+        const msg = `🔍 다시 빼볼까요? 남은 ${guidedState.remAfterTens}개에서 ${guidedState.onesProduct}개를 빼면 몇 개 남을까요?`;
+        fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-rose-500/20 border-rose-400 text-rose-200 animate-shake";
+        fb.textContent = msg;
+        fb.style.display = "block";
+        speak(msg);
+        return;
+      }
+
+      // Solved Line 5 Question! Combine Tens + Ones!
+      g2Solved = true;
+      playSound("ok");
+      if (!g2HadWrong) g2FirstTry++;
+
+      document.getElementById("g2-progress-text").textContent = `${g2Index + 1} / ${TOTAL_QUESTIONS} 문제 · ⭐ ${g2FirstTry}개`;
+      renderLine5GuidedUI();
+
+      const okMsg = `🎊 합체 완료! 큰 상자 ${guidedState.tensQ}상자 + 작은 상자 ${guidedState.onesQ}상자 = 총 ${q.quotient}상자! (나머지 ${q.remainder}개)`;
+      fb.className = "mt-4 rounded-2xl p-4 text-center font-bold text-sm sm:text-base border-2 bg-emerald-500/20 border-emerald-400 text-emerald-200";
+      fb.textContent = okMsg;
+      fb.style.display = "block";
+
+      const nextBtn = document.getElementById("g2-next-btn");
+      nextBtn.querySelector("span").textContent = g2Index === TOTAL_QUESTIONS - 1 ? "공장 가동 결과 보기 🏆" : "다음 보석 묶음 받기! ⚙️";
+      nextBtn.style.display = "block";
+
+      speak(`합체 완료! 큰 상자 ${guidedState.tensQ}상자와 작은 상자 ${guidedState.onesQ}상자를 합쳐 총 ${q.quotient}상자, 나머지는 ${q.remainder}개입니다.`);
+    }
+
+    function nextGame2Question() {
+      playSound("tap");
+      if (g2Index < TOTAL_QUESTIONS - 1) {
+        g2Index++;
+        renderGame2Question();
+      } else {
+        document.getElementById("g2-progress-fill").style.width = "100%";
+        document.getElementById("res-emoji").textContent = "💎🎉";
+        document.getElementById("res-title").textContent = "보석 상자 포장 완벽 클리어!";
+        document.getElementById("res-summary").textContent =
+          `공장 가동 ${runCounts.g2}회차를 마쳤어요! 다시 시작하면 숫자가 모두 새롭게 바뀝니다.`;
+        document.getElementById("res-score-pill").textContent =
+          `한 번에 합격한 포장: ⭐ ${g2FirstTry} / ${TOTAL_QUESTIONS}`;
+        document.getElementById("res-replay-btn").querySelector("span").textContent =
+          "🎲 새로운 숫자로 다시 가동하기";
+        showScreen("screen-result");
+        speak(`보석 상자 포장 공장 클리어! 열 문제 중 ${g2FirstTry}문제를 한 번에 성공했어요.`);
+      }
+    }
+
+    /*************************************************************************
+     * 4. REPLAY WITH FRESH NON-REPEATING RANDOM NUMBERS
+     *************************************************************************/
+    function replayCurrentGameWithNewRandom() {
+      totalChallengeCount++;
+      if (activeGame === "g1") {
+        runCounts.g1++;
+        startGame1(activeMode);
+      } else if (activeGame === "g2") {
+        runCounts.g2++;
+        startGame2(activeMode);
+      } else {
+        goHub();
+      }
+    }
+
+    window.onload = function () {
+      document.getElementById("run-badge").textContent = `도전 ${totalChallengeCount}회차`;
+      showScreen("screen-hub");
+    };
+  </script>
+</body>
+</html>
